@@ -24,6 +24,8 @@
   --warn: #8a5a00;
   --radius: 6px;
   --ctl-h: 28px;
+  --left-w: 290px;
+  --right-w: 330px;
   --ui-font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   color-scheme: light;
 }
@@ -94,10 +96,15 @@ input:focus, select:focus, .rich:focus { outline: 2px solid rgba(47, 81, 153, .2
 input[type=number] { padding-right: 2px; }
 
 /* ---------- layout ---------- */
-.layout { display: grid; grid-template-columns: 290px 1fr 330px; height: calc(100% - 48px); }
+.layout { display: grid; grid-template-columns: var(--left-w) 6px 1fr 6px var(--right-w); height: calc(100% - 48px); }
 .side { background: var(--panel); overflow: hidden; display: flex; flex-direction: column; }
-.side.left { border-right: 1px solid var(--line); overflow-y: auto; }
-.side.right { border-left: 1px solid var(--line); }
+.side.left { overflow-y: auto; }
+
+/* draggable column dividers */
+.splitter { background: var(--line); cursor: col-resize; position: relative; z-index: 6; }
+.splitter::before { content: ''; position: absolute; top: 0; bottom: 0; left: -4px; right: -4px; }
+.splitter:hover, .splitter.dragging { background: var(--accent-2); }
+body.resizing, body.resizing * { cursor: col-resize !important; user-select: none; }
 .panel { padding: 12px 12px 10px; border-bottom: 1px solid var(--line); }
 .panel.grow { flex: 1; border-bottom: 0; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -105,6 +112,10 @@ input[type=number] { padding-right: 2px; }
 
 /* files */
 .file-list { display: flex; flex-direction: column; gap: 6px; }
+.pick-bar { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11.5px; color: var(--muted); padding: 0 2px 2px; }
+.file-pick { appearance: auto; width: 14px; height: 14px; margin: 0; flex: none; cursor: pointer; accent-color: var(--accent); }
+.file-card.off { opacity: .55; }
+.file-card.off .file-name b { text-decoration: line-through; text-decoration-color: var(--line-2); }
 .file-card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
 .file-top { display: flex; align-items: center; gap: 6px; padding: 7px 8px; cursor: pointer; }
 .file-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
@@ -292,7 +303,7 @@ table.kv td { text-align: left; }
 .toast.err { background: var(--danger); }
 
 @media (max-width: 1100px) {
-  .layout { grid-template-columns: 250px 1fr 300px; }
+  :root { --left-w: 250px; --right-w: 300px; }
   .brand-sub { display: none; }
 }
 .empty[hidden] { display: none; }
@@ -308,7 +319,9 @@ table.kv td { text-align: left; }
     </div>
     <div class="tb-group">
       <button class="btn primary" id="btnOpen" title="打开 .cex 文件（可多选，也可直接拖入窗口）">打开 CEX</button>
+      <button class="btn" id="btnOpenDir" title="载入一个文件夹中的全部 .cex 文件（含子文件夹）">打开文件夹</button>
       <input type="file" id="fileInput" multiple hidden>
+      <input type="file" id="dirInput" webkitdirectory directory multiple hidden>
     </div>
     <div class="tb-group">
       <button class="btn icon" id="btnUndo" title="撤销 (Ctrl/⌘+Z)">↶</button>
@@ -355,7 +368,7 @@ table.kv td { text-align: left; }
       <section class="panel">
         <div class="panel-head"><h2>数据文件</h2></div>
         <div id="fileList" class="file-list"></div>
-        <div class="dropzone" id="dropzone">将 .cex 文件拖到这里，或点击选择<br><span class="muted">数据仅在本机浏览器中解析，不会上传</span></div>
+        <div class="dropzone" id="dropzone">把 .cex 文件或整个文件夹拖到这里，或点击选择<br><span class="muted">勾选要作图的文件 · 数据仅在本机浏览器中解析，不会上传</span></div>
       </section>
       <section class="panel">
         <div class="panel-head"><h2>快速作图</h2></div>
@@ -371,6 +384,8 @@ table.kv td { text-align: left; }
         <div id="seriesList" class="series-list"></div>
       </section>
     </aside>
+
+    <div class="splitter" id="splitL" title="拖动调整宽度，双击复位"></div>
 
     <section class="stage">
       <div class="stage-bar">
@@ -396,6 +411,8 @@ table.kv td { text-align: left; }
       </div>
       <div class="statusbar" id="statusbar"></div>
     </section>
+
+    <div class="splitter" id="splitR" title="拖动调整宽度，双击复位"></div>
 
     <aside class="side right" id="rightPanel">
       <nav class="tabs" id="tabs">
@@ -1252,7 +1269,7 @@ table.kv td { text-align: left; }
   function snapshot(st) {
     return JSON.stringify({
       series: st.series, fig: st.fig, annotations: st.annotations,
-      files: st.files.map((f) => ({ id: f.id, alias: f.alias, massMg: f.massMg, retentionBase: f.retentionBase, cycleMode: f.cycleMode })),
+      files: st.files.map((f) => ({ id: f.id, alias: f.alias, massMg: f.massMg, retentionBase: f.retentionBase, cycleMode: f.cycleMode, picked: f.picked !== false })),
     });
   }
 
@@ -2253,7 +2270,7 @@ table.kv td { text-align: left; }
       app: 'LandPlot', version: 1, savedAt: new Date().toISOString(),
       series: st.series, fig: st.fig, annotations: st.annotations,
       files: st.files.map((f) => ({
-        id: f.id, name: f.name, alias: f.alias, massMg: f.massMg, retentionBase: f.retentionBase, cycleMode: f.cycleMode,
+        id: f.id, name: f.name, alias: f.alias, massMg: f.massMg, retentionBase: f.retentionBase, cycleMode: f.cycleMode, picked: f.picked !== false,
         data: embed ? bufToB64(f.buffer) : null,
       })),
     };
@@ -2481,12 +2498,28 @@ table.kv td { text-align: left; }
     const el = document.getElementById('fileList');
     const c = makeControls(app);
     el.innerHTML = '';
+    const picked = (f) => f.picked !== false;
+    if (app.st.files.length > 1) {
+      const n = app.st.files.filter(picked).length;
+      const all = n === app.st.files.length;
+      el.append(h('div', { class: 'pick-bar' },
+        h('span', null, `作图使用 ${n} / ${app.st.files.length} 个文件`),
+        h('button', {
+          class: 'btn small ghost',
+          onclick: () => { app.st.files.forEach((x) => { x.picked = !all; }); renderFiles(app); renderPresets(app); },
+        }, all ? '全不选' : '全选')));
+    }
     for (const f of app.st.files) {
       const d = f.data;
       const open = app.ui.openFile === f.id;
       const info = `${d.cycles.length} 圈 · ${d.meta.records.toLocaleString()} 点 · ${f.massMg ? `${+Number(f.massMg).toFixed(4)} mg` : '未设质量'}`;
-      const card = h('div', { class: 'file-card' + (open ? ' open' : '') },
+      const card = h('div', { class: 'file-card' + (open ? ' open' : '') + (picked(f) ? '' : ' off') },
         h('div', { class: 'file-top', onclick: () => { app.ui.openFile = open ? null : f.id; renderFiles(app); } },
+          h('input', {
+            type: 'checkbox', class: 'file-pick', checked: picked(f),
+            title: '勾选后参与“快速作图”',
+            onclick: (e) => { e.stopPropagation(); f.picked = e.target.checked; renderFiles(app); renderPresets(app); },
+          }),
           h('span', { class: 'file-dot', style: { background: d.warnings.length || d.meta.verified === 'unverified' ? '#d4870b' : '' } }),
           h('div', { class: 'file-name' }, h('b', { title: f.name }, f.alias), h('span', null, info)),
           h('span', { class: 'muted' }, open ? '▴' : '▾')),
@@ -2520,8 +2553,13 @@ table.kv td { text-align: left; }
   function renderPresets(app) {
     const el = document.getElementById('presetList');
     el.innerHTML = '';
+    const n = app.st.files.filter((f) => f.picked !== false).length;
+    const tip = !app.st.files.length ? '请先载入 .cex 文件'
+      : !n ? '请先在左侧勾选要作图的文件'
+      : app.st.files.length > 1 ? `用左侧勾选的 ${n} 个文件生成此类图（会替换当前系列，可撤销）`
+      : '生成此类图（会替换当前系列，可撤销）';
     for (const [key, p] of Object.entries(LP.state.PRESETS)) {
-      el.append(h('button', { class: 'btn', disabled: !app.st.files.length, title: '用已载入的全部文件生成此类图（会替换当前系列，可撤销）', onclick: () => app.applyPreset(key) }, p.name));
+      el.append(h('button', { class: 'btn', disabled: !n, title: tip, onclick: () => app.applyPreset(key) }, p.name));
     }
   }
 
@@ -3008,32 +3046,73 @@ table.kv td { text-align: left; }
       massMg: over.massMg ?? +(data.meta.massG * 1000).toPrecision(6),
       retentionBase: over.retentionBase || 'land',
       cycleMode: over.cycleMode || 'auto',
+      picked: over.picked !== false,
       buffer, data,
     };
     st.files.push(f);
     return f;
   }
 
-  async function loadFiles(list) {
-    const added = [];
-    for (const file of list) {
-      if (/\.json$/i.test(file.name)) { await openProjectFile(file); return; }
+  const CEX_EXT = /\.(cex|txt)$/i;
+  const junkName = (n) => /^[._]/.test(n) || /^(thumbs\.db|desktop\.ini)$/i.test(n);
+  const baseName = (f) => String(f.name || '').split(/[\\/]/).pop();
+
+  /** collect .cex files from dropped directory entries (Chrome / Edge / Safari) */
+  function collectEntries(entries, limit = 400) {
+    const out = [];
+    const readAll = (reader) => new Promise((res, rej) => {
+      const acc = [];
+      const step = () => reader.readEntries((batch) => { if (!batch.length) res(acc); else { acc.push(...batch); step(); } }, rej);
+      step();
+    });
+    const walk = async (entry, depth) => {
+      if (out.length >= limit || depth > 6) return;
+      if (entry.isFile) {
+        if (junkName(entry.name) || !CEX_EXT.test(entry.name)) return;
+        out.push(await new Promise((res, rej) => entry.file(res, rej)));
+        return;
+      }
+      if (!entry.isDirectory || junkName(entry.name)) return;
+      for (const e of await readAll(entry.createReader())) await walk(e, depth + 1);
+    };
+    return (async () => { for (const e of entries) await walk(e, 0); return out; })();
+  }
+
+  async function loadFiles(list, opts = {}) {
+    const all = [...list];
+    const proj = all.find((f) => /\.json$/i.test(f.name));
+    if (proj) { await openProjectFile(proj); return; }
+    let cand = all.filter((f) => !junkName(baseName(f)));
+    if (opts.folder) cand = cand.filter((f) => CEX_EXT.test(f.name));
+    const skippedByType = opts.folder ? all.length - cand.length : 0;
+    if (!cand.length) { toast(opts.folder ? '这个文件夹里没有找到 .cex 文件' : '没有可读取的文件', true); return; }
+    cand.sort((a, b) => String(a.webkitRelativePath || a.name).localeCompare(String(b.webkitRelativePath || b.name), 'zh-CN', { numeric: true }));
+
+    const added = [], failed = [];
+    const many = cand.length > 3;
+    for (let i = 0; i < cand.length; i++) {
+      const file = cand[i];
+      if (many) { toast(`正在读取 ${i + 1} / ${cand.length}：${baseName(file)}`); await new Promise((r) => setTimeout(r)); }
       try {
-        const buf = await file.arrayBuffer();
-        added.push(addParsed(file.name, buf));
+        added.push(addParsed(baseName(file), await file.arrayBuffer()));
       } catch (e) {
-        toast(`${file.name}：${e instanceof LP.cex.CexError ? e.message : '读取失败（' + e.message + '）'}`, true);
-        console.error(e);
+        failed.push(`${baseName(file)}：${e && e.message ? e.message : '读取失败'}`);
       }
     }
-    if (!added.length) return;
+    if (failed.length) console.warn('LandPlot 跳过的文件:\n' + failed.join('\n'));
+    if (!added.length) {
+      toast(failed.length === 1 ? failed[0] : `${failed.length} 个文件无法读取，详见浏览器控制台`, true);
+      return;
+    }
+    const note = [failed.length ? `${failed.length} 个无法读取` : '', skippedByType ? `${skippedByType} 个非 .cex 文件已跳过` : ''].filter(Boolean).join('，');
     if (!st.series.length) {
       applyPreset('cycling', true);
+      if (note) toast(`已载入 ${added.length} 个文件（${note}）`);
     } else {
-      toast(`已载入 ${added.length} 个文件。可用“快速作图”生成新图，或在系列中选择该文件。`);
+      toast(`已载入 ${added.length} 个文件${note ? `（${note}）` : ''}。在左侧勾选要作图的文件，再点“快速作图”。`);
       app.changed({ panels: true, files: true });
     }
-    app.ui.openFile = added[added.length - 1].id;
+    app.ui.openFile = added.length === 1 ? added[0].id : null;
     LP.ui.renderFiles(app);
   }
 
@@ -3087,11 +3166,13 @@ table.kv td { text-align: left; }
 
   function applyPreset(key, silent) {
     const p = LP.state.PRESETS[key];
-    const r = p.apply(st, st.files);
+    const files = st.files.filter((f) => f.picked !== false);
+    if (!files.length) { toast('请先在左侧勾选要作图的文件', true); return; }
+    const r = p.apply(st, files);
     st.fig = LP.io.applyDefaultStyle(r.fig);
     st.series = r.series;
     st.sel = { tab: 'series', id: r.series[0]?.id ?? null };
-    if (!silent) toast(st.files.length > 1 && st.files.some((f) => f.alias.length > 16) ? `已生成“${p.name}”。图例使用文件名称，可在左侧文件卡片中改短。` : `已生成“${p.name}”（可撤销）`);
+    if (!silent) toast(files.length > 1 && files.some((f) => f.alias.length > 16) ? `已生成“${p.name}”（用 ${files.length} 个文件）。图例使用文件名称，可在左侧文件卡片中改短。` : `已生成“${p.name}”（可撤销）`);
     app.changed({ panels: true, files: true });
     app.updatePaper();
   }
@@ -3273,7 +3354,9 @@ table.kv td { text-align: left; }
     showModal('使用说明', h('div', { html: `
       <h4>基本流程</h4>
       <ul>
-        <li>点击“打开 CEX”或把一个或多个 <code>.cex</code> 文件拖进窗口。文件只在本机浏览器中解析，不会上传。</li>
+        <li>点击“打开 CEX”或把一个或多个 <code>.cex</code> 文件拖进窗口。点“打开文件夹”可一次载入整个文件夹（含子文件夹）里的全部 .cex，也可以直接把文件夹拖进来。文件只在本机浏览器中解析，不会上传。</li>
+        <li>载入多个文件后，每张文件卡片左侧有一个<b>勾选框</b>：“快速作图”只用勾选中的文件。想单独看某一个文件，取消其他文件的勾选即可。</li>
+        <li>左右两栏之间的<b>分隔条可以拖动</b>调整宽度，双击复位。宽度会记在本浏览器中。</li>
         <li>左侧“快速作图”一键生成常用图：循环 + 库伦效率（双 Y 轴）、逐圈渐变充放电曲线、电压–时间、dQ/dV、中值电压与极化、保持率对比。多个文件会自动生成对比图。</li>
         <li>在“数据系列”中可增删、复制、排序、隐藏系列；右侧“系列”页设置 X / Y 变量、左右 Y 轴、圈数、颜色、线型、散点符号与逐圈渐变。</li>
       </ul>
@@ -3345,11 +3428,67 @@ table.kv td { text-align: left; }
     }
   }
 
+  // ---------------- resizable side panels ----------------
+  const PANEL_KEY = 'landplot.panels.v1';
+  const PANEL_DEF = { left: 290, right: 330 };
+  const panelVar = (side) => (side === 'left' ? '--left-w' : '--right-w');
+  const panelWidth = (side) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(panelVar(side))) || PANEL_DEF[side];
+  const setPanel = (side, px) => document.documentElement.style.setProperty(panelVar(side), `${Math.round(px)}px`);
+
+  function savePanels() {
+    try { localStorage.setItem(PANEL_KEY, JSON.stringify({ left: panelWidth('left'), right: panelWidth('right') })); } catch (_) { /* ignore */ }
+  }
+  function loadPanels() {
+    try {
+      const p = JSON.parse(localStorage.getItem(PANEL_KEY) || 'null');
+      if (p && p.left > 0) setPanel('left', p.left);
+      if (p && p.right > 0) setPanel('right', p.right);
+    } catch (_) { /* ignore */ }
+  }
+
+  function initSplitter(id, side) {
+    const el = $(id);
+    if (!el) return;
+    const MIN = side === 'left' ? 210 : 260;
+    const MAX = side === 'left' ? 620 : 680;
+    let startX = 0, startW = 0;
+    const apply = (ev) => {
+      const dx = ev.clientX - startX;
+      const raw = side === 'left' ? startW + dx : startW - dx;
+      const room = window.innerWidth - panelWidth(side === 'left' ? 'right' : 'left') - 340;
+      setPanel(side, Math.max(MIN, Math.min(MAX, raw, Math.max(MIN, room))));
+      if (app.ui.zoom === 'fit') scheduleRender();
+    };
+    const up = () => {
+      document.removeEventListener('mousemove', apply);
+      document.removeEventListener('mouseup', up);
+      document.body.classList.remove('resizing');
+      el.classList.remove('dragging');
+      savePanels();
+      scheduleRender();
+    };
+    el.addEventListener('mousedown', (ev) => {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      startX = ev.clientX;
+      startW = panelWidth(side);
+      document.addEventListener('mousemove', apply);
+      document.addEventListener('mouseup', up);
+      document.body.classList.add('resizing');
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dblclick', () => { setPanel(side, PANEL_DEF[side]); savePanels(); scheduleRender(); });
+  }
+
   // ---------------- wiring ----------------
   function wire() {
+    initSplitter('splitL', 'left');
+    initSplitter('splitR', 'right');
     $('btnOpen').onclick = () => $('fileInput').click();
     $('dropzone').onclick = () => $('fileInput').click();
     $('fileInput').onchange = (e) => { loadFiles([...e.target.files]); e.target.value = ''; };
+    $('btnOpenDir').onclick = () => $('dirInput').click();
+    $('dirInput').onchange = (e) => { loadFiles([...e.target.files], { folder: true }); e.target.value = ''; };
     $('projectInput').onchange = (e) => { const f = e.target.files[0]; if (f) openProjectFile(f); e.target.value = ''; };
     $('btnUndo').onclick = app.undo;
     $('btnRedo').onclick = app.redo;
@@ -3402,7 +3541,20 @@ table.kv td { text-align: left; }
     window.addEventListener('drop', (e) => {
       e.preventDefault();
       dragDepth = 0; document.body.classList.remove('dragging');
-      if (e.dataTransfer && e.dataTransfer.files.length) loadFiles([...e.dataTransfer.files]);
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      // webkitGetAsEntry() must be read synchronously, before any await
+      const entries = [...(dt.items || [])].map((it) => (it.webkitGetAsEntry ? it.webkitGetAsEntry() : null)).filter(Boolean);
+      const files = [...dt.files];
+      if (entries.some((x) => x.isDirectory)) {
+        toast('正在扫描文件夹…');
+        collectEntries(entries).then((fs) => loadFiles(fs, { folder: true }), (err) => {
+          console.error(err);
+          if (files.length) loadFiles(files); else toast('无法读取这个文件夹，请改用“打开文件夹”按钮', true);
+        });
+        return;
+      }
+      if (files.length) loadFiles(files);
     });
 
     document.addEventListener('keydown', (e) => {
@@ -3417,6 +3569,7 @@ table.kv td { text-align: left; }
   }
 
   // ---------------- start ----------------
+  loadPanels();
   wire();
   Plotly.newPlot(plotEl, [], { width: 400, height: 300 }, { displayModeBar: false }).then(() => {
     plotEl.on('plotly_relayout', onRelayout);
