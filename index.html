@@ -308,6 +308,84 @@ table.kv td { text-align: left; }
 }
 .empty[hidden] { display: none; }
 
+/* ======================= 数据库（库面板） ======================= */
+.lib-panel{position:fixed;inset:0;z-index:60;background:var(--bg,#fff);display:flex;flex-direction:column;
+  font-size:13px;color:#1b1b1b}
+.lib-panel[hidden]{display:none}
+.lib-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #e3e3e3;background:#fafafa}
+.lib-where{display:flex;align-items:center;gap:8px;font-weight:600}
+.lib-where .warn{color:#b4451f}
+.lib-busy{color:#666;font-size:12px}
+.lib-tools{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #ececec}
+.lib-into{color:#666;font-size:12px}
+.lib-search{width:260px;padding:5px 9px;border:1px solid #d6d6d6;border-radius:6px;font-size:12.5px}
+.lib-deep{display:flex;align-items:center;gap:4px;color:#555;font-size:12px}
+.lib-body{flex:1;display:grid;grid-template-columns:215px 1fr 310px;min-height:0}
+.lib-tree{border-right:1px solid #ececec;overflow:auto;padding:6px 0}
+.lib-tree-row{display:flex;align-items:center;gap:6px;padding:5px 10px;cursor:pointer;border-radius:5px;margin:0 6px}
+.lib-tree-row:hover{background:#f1f1f1}
+.lib-tree-row.on{background:#e6eefb;font-weight:600}
+.lib-tree-row.drop{outline:2px dashed #2a78d6;outline-offset:-2px}
+.lib-tree-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-tree-n{color:#999;font-size:11.5px}
+.lib-tree-btns{display:flex;flex-wrap:wrap;gap:4px;padding:10px}
+.lib-mid{display:flex;flex-direction:column;min-width:0;min-height:0}
+.lib-selbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#eef4ff;border-bottom:1px solid #d9e4f7}
+.lib-list{flex:1;overflow:auto}
+.lib-thead,.lib-item{display:grid;grid-template-columns:28px 1fr 62px 58px 62px 62px 72px;align-items:center;gap:6px;padding:6px 12px}
+.lib-thead{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #e3e3e3;color:#666;font-size:12px;z-index:1}
+.lib-th{background:none;border:0;padding:0;text-align:center;color:#666;font:inherit;cursor:pointer}
+.lib-th.on{color:#1f3b73;font-weight:700}
+.lib-item{border-bottom:1px solid #f0f0f0;cursor:pointer}
+.lib-item:hover{background:#f7f9fc}
+.lib-item.sel{background:#e6eefb}
+.li-main{min-width:0}
+.li-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-sub{color:#777;font-size:11.5px;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
+.li-num{text-align:center;font-variant-numeric:tabular-nums}
+.li-stars{text-align:center;color:#e0a500;letter-spacing:-1px}
+.chip{background:#eee;border-radius:9px;padding:1px 7px;font-size:11px;color:#555}
+.chip.tag{background:#e3f0e6;color:#2e6b3e}
+.lib-side{border-left:1px solid #ececec;overflow:auto;padding:12px}
+.lib-empty{padding:28px;color:#999;text-align:center}
+.lib-detail{display:flex;flex-direction:column;gap:9px}
+.lib-title{font-size:15px;font-weight:700;border:1px solid transparent;border-radius:5px;padding:4px 6px;width:100%}
+.lib-title:hover,.lib-title:focus{border-color:#d6d6d6;outline:none}
+.lib-stars .star{background:none;border:0;cursor:pointer;color:#ddd;font-size:17px;padding:0 1px}
+.lib-stars .star.on{color:#e0a500}
+.lib-field{display:flex;flex-direction:column;gap:3px}
+.lib-field label{color:#666;font-size:11.5px}
+.lib-field input,.lib-field textarea{border:1px solid #d6d6d6;border-radius:5px;padding:5px 7px;font:inherit;font-size:12.5px;resize:vertical}
+.lib-stats{display:flex;flex-wrap:wrap;gap:6px 14px;background:#f7f7f7;border-radius:6px;padding:8px 10px;font-size:12px}
+.lib-stats .warn{color:#b4451f;width:100%}
+.lib-files h5{margin:8px 0 4px;font-size:12px;color:#666}
+.lib-file{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px dashed #eee;font-size:12px}
+.lib-file .fn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-file .fm{color:#888;font-size:11px}
+.lib-file.missing .fn{color:#b4451f;text-decoration:line-through}
+.lib-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.lib-reconnect{padding:40px;max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.lib-reconnect p{margin:0;color:#444;line-height:1.7}
+.btn.danger{border-color:#e0b4b4;color:#a33}
+
+/* 侧栏里的电池库（可折叠） */
+.lib-mini .panel-head{cursor:pointer;user-select:none}
+.lib-mini .caret{display:inline-block;width:11px;color:var(--muted);font-size:10px}
+.lib-mini-body{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.lib-mini-tools{display:flex;gap:4px}
+.lib-mini-tools select{flex:1 1 50%;min-width:0;font-size:11.5px}
+.lib-mini-tools input{flex:1 1 50%;min-width:0;font-size:11.5px}
+.lib-mini-list{max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+.lib-mini-row{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:5px;padding:3px 6px;font-size:11.5px;border-bottom:1px solid #f1f1ef}
+.lib-mini-row:last-child{border-bottom:0}
+.lib-mini-row.on{background:#f3f0fa}
+.lib-mini-row:hover{background:#f7f7f5}
+.lib-mini-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.lib-mini-n{color:var(--muted);font-size:10.5px;white-space:nowrap}
+.lib-mini-hint{color:var(--muted);font-size:11.5px;padding:6px 2px;line-height:1.6}
+.lib-mini-foot{display:flex;align-items:center;gap:5px;font-size:11px}
+.head-actions{display:flex;align-items:center;gap:5px}
+
 </style>
 </head>
 <body>
@@ -322,6 +400,8 @@ table.kv td { text-align: left; }
       <button class="btn" id="btnOpenDir" title="载入一个文件夹中的全部 .cex 文件（含子文件夹）">打开文件夹</button>
       <input type="file" id="fileInput" multiple hidden>
       <input type="file" id="dirInput" webkitdirectory directory multiple hidden>
+      <button class="btn" id="btnNew" title="清空当前工作区，重新开始（可撤销）">新建</button>
+      <button class="btn" id="btnLibrary" title="电池数据库：按分类管理所有 .cex，数据保存在本地">数据库</button>
     </div>
     <div class="tb-group">
       <button class="btn icon" id="btnUndo" title="撤销 (Ctrl/⌘+Z)">↶</button>
@@ -365,8 +445,20 @@ table.kv td { text-align: left; }
 
   <main class="layout">
     <aside class="side left" id="leftPanel">
+      <section class="panel lib-mini" id="libMini">
+        <div class="panel-head" id="libMiniHead">
+          <h2><span class="caret" id="libMiniCaret">▸</span> 电池库</h2>
+          <div class="head-actions">
+            <button class="btn small ghost" id="btnLibManage" title="打开完整的数据库窗口">管理…</button>
+          </div>
+        </div>
+        <div id="libMiniBody" class="lib-mini-body" hidden></div>
+      </section>
       <section class="panel">
-        <div class="panel-head"><h2>数据文件</h2></div>
+        <div class="panel-head">
+          <h2>数据文件</h2>
+          <div class="head-actions"><button class="btn small ghost" id="btnClearFiles" title="移除全部已载入文件（可撤销）">清空</button></div>
+        </div>
         <div id="fileList" class="file-list"></div>
         <div class="dropzone" id="dropzone">把 .cex 文件或整个文件夹拖到这里，或点击选择<br><span class="muted">勾选要作图的文件 · 数据仅在本机浏览器中解析，不会上传</span></div>
       </section>
@@ -379,6 +471,7 @@ table.kv td { text-align: left; }
           <h2>数据系列</h2>
           <div class="head-actions">
             <button class="btn small" id="btnAddSeries" title="新增数据系列">＋ 新增</button>
+            <button class="btn small ghost" id="btnClearSeries" title="删除全部数据系列（可撤销）">清空</button>
           </div>
         </div>
         <div id="seriesList" class="series-list"></div>
@@ -444,6 +537,10 @@ table.kv td { text-align: left; }
     </div>
   </div>
   <div id="toast" class="toast" hidden></div>
+
+  <div id="libPanel" class="lib-panel" hidden></div>
+  <input type="file" id="libFileInput" multiple hidden>
+  <input type="file" id="libDirInput" webkitdirectory directory multiple hidden>
 
   <script>/* vendor/plotly-2.35.2.min.js */
 /**
@@ -2499,15 +2596,22 @@ table.kv td { text-align: left; }
     const c = makeControls(app);
     el.innerHTML = '';
     const picked = (f) => f.picked !== false;
-    if (app.st.files.length > 1) {
+    if (app.st.files.length) {
       const n = app.st.files.filter(picked).length;
       const all = n === app.st.files.length;
       el.append(h('div', { class: 'pick-bar' },
-        h('span', null, `作图使用 ${n} / ${app.st.files.length} 个文件`),
+        h('span', null, `勾选 ${n} / ${app.st.files.length}`),
+        h('span', { style: { flex: '1' } }),
         h('button', {
           class: 'btn small ghost',
+          title: all ? '取消全部勾选' : '勾选全部文件',
           onclick: () => { app.st.files.forEach((x) => { x.picked = !all; }); renderFiles(app); renderPresets(app); },
-        }, all ? '全不选' : '全选')));
+        }, all ? '全不选' : '全选'),
+        h('button', {
+          class: 'btn small ghost danger', disabled: !n,
+          title: '移除勾选的文件（可撤销）',
+          onclick: () => app.removeFiles(app.st.files.filter(picked).map((x) => x.id)),
+        }, '删除勾选')));
     }
     for (const f of app.st.files) {
       const d = f.data;
@@ -2576,6 +2680,20 @@ table.kv td { text-align: left; }
     if (!st.series.length) {
       el.append(h('div', { class: 'hint', style: { padding: '6px 2px' } }, st.files.length ? '点击“快速作图”中的图类型，或“＋ 新增”手动添加数据系列。' : '载入文件后可添加数据系列。'));
       return;
+    }
+    {
+      const vis = st.series.filter((s) => s.visible).length;
+      el.append(h('div', { class: 'pick-bar' },
+        h('span', null, `${st.series.length} 条 · 显示 ${vis}`),
+        h('span', { style: { flex: '1' } }),
+        h('button', {
+          class: 'btn small ghost', title: vis === st.series.length ? '全部隐藏' : '全部显示',
+          onclick: () => app.setAllSeriesVisible(vis !== st.series.length),
+        }, vis === st.series.length ? '全部隐藏' : '全部显示'),
+        h('button', {
+          class: 'btn small ghost danger', title: '删除全部数据系列（可撤销）',
+          onclick: () => app.removeAllSeries(),
+        }, '全部删除')));
     }
     st.series.forEach((s, i) => {
       const f = app.fileById(s.fileId);
@@ -2922,6 +3040,1076 @@ table.kv td { text-align: left; }
 })(globalThis.LP = globalThis.LP || {});
 
 </script>
+  <script>/* js/library.js */
+// Library model: content hashing, fingerprints, de-duplication, folder tree.
+// Pure logic — no DOM, no storage. Runs in the browser and in Node (tests).
+(function (LP) {
+  'use strict';
+
+  // ---------------------------------------------------------------- hashing
+  // SHA-256 in plain JS so it also works on file:// where crypto.subtle is absent.
+  const K = new Uint32Array([
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]);
+
+  function sha256Hex(buf) {
+    const msg = new Uint8Array(buf);
+    const bitLenHi = Math.floor((msg.length / 0x20000000));
+    const bitLenLo = (msg.length << 3) >>> 0;
+    const withPad = ((msg.length + 9 + 63) & ~63);
+    const b = new Uint8Array(withPad);
+    b.set(msg); b[msg.length] = 0x80;
+    const dv = new DataView(b.buffer);
+    dv.setUint32(withPad - 8, bitLenHi);
+    dv.setUint32(withPad - 4, bitLenLo);
+    let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a,
+        h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+    const w = new Uint32Array(64);
+    for (let i = 0; i < withPad; i += 64) {
+      for (let j = 0; j < 16; j++) w[j] = dv.getUint32(i + j * 4);
+      for (let j = 16; j < 64; j++) {
+        const x = w[j - 15], y = w[j - 2];
+        const s0 = ((x >>> 7) | (x << 25)) ^ ((x >>> 18) | (x << 14)) ^ (x >>> 3);
+        const s1 = ((y >>> 17) | (y << 15)) ^ ((y >>> 19) | (y << 13)) ^ (y >>> 10);
+        w[j] = (w[j - 16] + s0 + w[j - 7] + s1) >>> 0;
+      }
+      let a = h0, bb = h1, c = h2, d = h3, e = h4, f = h5, g = h6, hh = h7;
+      for (let j = 0; j < 64; j++) {
+        const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (hh + S1 + ch + K[j] + w[j]) >>> 0;
+        const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+        const mj = (a & bb) ^ (a & c) ^ (bb & c);
+        const t2 = (S0 + mj) >>> 0;
+        hh = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = bb; bb = a; a = (t1 + t2) >>> 0;
+      }
+      h0 = (h0 + a) >>> 0; h1 = (h1 + bb) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0;
+      h4 = (h4 + e) >>> 0; h5 = (h5 + f) >>> 0; h6 = (h6 + g) >>> 0; h7 = (h7 + hh) >>> 0;
+    }
+    const hex = (n) => n.toString(16).padStart(8, '0');
+    return hex(h0) + hex(h1) + hex(h2) + hex(h3) + hex(h4) + hex(h5) + hex(h6) + hex(h7);
+  }
+
+  /** content hash; uses WebCrypto when the page is a secure context, else plain JS */
+  async function hashBuffer(buf) {
+    const c = typeof crypto !== 'undefined' ? crypto : null;
+    if (c && c.subtle && c.subtle.digest) {
+      try {
+        const d = await c.subtle.digest('SHA-256', buf);
+        return [...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, '0')).join('');
+      } catch (_) { /* opaque origin → fall through */ }
+    }
+    return sha256Hex(buf);
+  }
+
+  // ------------------------------------------------------------ fingerprint
+  // LAND writes "<name>_<unit>_<channel>.cex"; the unit/channel pair identifies
+  // the physical tester slot, which together with the first step timestamp
+  // identifies one test run.
+  const CHANNEL_RE = /_(\d{3})_(\d+)(?:~\d+)?(?:\.(?:cex|txt))?$/i;
+
+  function channelOf(name) {
+    const m = CHANNEL_RE.exec(String(name || ''));
+    return m ? `${m[1]}-${m[2]}` : '';
+  }
+
+  /** strip the LAND channel suffix and extension → human readable stem */
+  function stemOf(name) {
+    return String(name || '')
+      .replace(/\.(cex|txt)$/i, '')
+      .replace(/~\d+$/, '')
+      .replace(/_\d{3}_\d+$/, '')
+      .trim();
+  }
+
+  /**
+   * Fingerprint of one parsed .cex. `run` identifies the same test run even if
+   * the file was re-exported or renamed; `cell` is the looser key used to offer
+   * "these are the same battery" merges (continuation files).
+   */
+  function fingerprint(parsed, name) {
+    const m = parsed.meta || {};
+    const steps = parsed.steps || [];
+    const t0 = steps.length ? (steps[0].timestamp || 0) : 0;
+    const tEnd = steps.length ? (steps[steps.length - 1].timestamp || 0) : 0;
+    const ch = channelOf(name);
+    const mass = Number(m.massG || 0).toFixed(6);
+    return {
+      channel: ch,
+      t0, tEnd,
+      massG: Number(m.massG || 0),
+      profile: m.profile || '',
+      records: m.records || 0,
+      cycles: m.cycles || 0,
+      run: [ch, t0, mass, m.profile || ''].join('|'),
+      cell: [ch, mass, m.profile || ''].join('|'),
+    };
+  }
+
+  /** same physical cell? same slot + mass, non-overlapping runs within `days` */
+  function sameCell(a, b, days = 30) {
+    if (!a || !b) return false;
+    if (a.cell !== b.cell || !a.channel) return false;
+    if (!a.t0 || !b.t0) return false;
+    const gap = Math.abs((b.t0 - a.tEnd) < 0 ? (a.t0 - b.tEnd) : (b.t0 - a.tEnd));
+    return gap <= days * 86400;
+  }
+
+  // ------------------------------------------------------------ index schema
+  const SCHEMA = 1;
+
+  function emptyIndex() {
+    return {
+      app: 'LandPlot', schema: SCHEMA, updatedAt: new Date().toISOString(),
+      folders: [{ id: 'root', parent: null, name: '全部电池', order: 0 }],
+      items: [],   // batteries
+      files: [],   // .cex files, each belongs to one item
+    };
+  }
+
+  function normalizeIndex(obj) {
+    const ix = Object.assign(emptyIndex(), obj || {});
+    ix.folders = Array.isArray(ix.folders) && ix.folders.length ? ix.folders : emptyIndex().folders;
+    if (!ix.folders.some((f) => f.id === 'root')) ix.folders.unshift({ id: 'root', parent: null, name: '全部电池', order: 0 });
+    ix.items = Array.isArray(ix.items) ? ix.items : [];
+    ix.files = Array.isArray(ix.files) ? ix.files : [];
+    for (const it of ix.items) {
+      it.tags = Array.isArray(it.tags) ? it.tags : [];
+      it.folder = it.folder || 'root';
+      it.meta = it.meta || {};
+    }
+    return ix;
+  }
+
+  let seq = 0;
+  const uid = (p) => `${p}${Date.now().toString(36)}${(seq++).toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+
+  // ------------------------------------------------------------- tree helpers
+  function childFolders(ix, parent) {
+    return ix.folders.filter((f) => f.parent === parent).sort((a, b) => (a.order - b.order) || a.name.localeCompare(b.name, 'zh-CN'));
+  }
+
+  function folderPath(ix, id) {
+    const out = [];
+    let cur = ix.folders.find((f) => f.id === id);
+    while (cur) { out.unshift(cur.name); cur = cur.parent ? ix.folders.find((f) => f.id === cur.parent) : null; }
+    return out;
+  }
+
+  function isDescendant(ix, id, maybeAncestor) {
+    let cur = ix.folders.find((f) => f.id === id);
+    while (cur && cur.parent) {
+      if (cur.parent === maybeAncestor) return true;
+      cur = ix.folders.find((f) => f.id === cur.parent);
+    }
+    return false;
+  }
+
+  function addFolder(ix, parent, name) {
+    const f = { id: uid('d'), parent: parent || 'root', name: name || '新建分类', order: childFolders(ix, parent || 'root').length };
+    ix.folders.push(f);
+    return f;
+  }
+
+  /** remove a folder; its items and sub-folders move to the parent */
+  function removeFolder(ix, id) {
+    if (id === 'root') return false;
+    const f = ix.folders.find((x) => x.id === id);
+    if (!f) return false;
+    const up = f.parent || 'root';
+    ix.folders.filter((x) => x.parent === id).forEach((x) => { x.parent = up; });
+    ix.items.filter((x) => x.folder === id).forEach((x) => { x.folder = up; });
+    ix.folders = ix.folders.filter((x) => x.id !== id);
+    return true;
+  }
+
+  function moveFolder(ix, id, newParent) {
+    if (id === 'root' || id === newParent) return false;
+    if (isDescendant(ix, newParent, id)) return false; // no cycles
+    const f = ix.folders.find((x) => x.id === id);
+    if (!f) return false;
+    f.parent = newParent || 'root';
+    return true;
+  }
+
+  /** items of a folder; `deep` includes sub-folders */
+  function itemsIn(ix, folderId, deep = false) {
+    if (!deep) return ix.items.filter((i) => i.folder === folderId);
+    const ids = new Set([folderId]);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const f of ix.folders) if (f.parent && ids.has(f.parent) && !ids.has(f.id)) { ids.add(f.id); grew = true; }
+    }
+    return ix.items.filter((i) => ids.has(i.folder));
+  }
+
+  const filesOf = (ix, itemId) => ix.files.filter((f) => f.item === itemId);
+
+  // ------------------------------------------------------- import / matching
+  /**
+   * Decide what to do with an incoming file.
+   *   duplicate  – byte-identical file already in the library
+   *   rerun      – same test run re-exported (same slot + start time, different bytes)
+   *   continuation – same cell, a later run → offer to attach to that battery
+   *   new        – nothing matches
+   */
+  function matchIncoming(ix, hash, fp) {
+    const byHash = ix.files.find((f) => f.hash === hash);
+    if (byHash) return { kind: 'duplicate', file: byHash, item: ix.items.find((i) => i.id === byHash.item) || null };
+    const byRun = ix.files.find((f) => f.fp && f.fp.run && fp.run && f.fp.run === fp.run);
+    if (byRun) return { kind: 'rerun', file: byRun, item: ix.items.find((i) => i.id === byRun.item) || null };
+    const cand = ix.files.filter((f) => f.fp && sameCell(f.fp, fp));
+    if (cand.length) {
+      const f = cand.sort((a, b) => (b.fp.t0 || 0) - (a.fp.t0 || 0))[0];
+      return { kind: 'continuation', file: f, item: ix.items.find((i) => i.id === f.item) || null };
+    }
+    return { kind: 'new', file: null, item: null };
+  }
+
+  /** a file name that does not collide inside one folder of the library */
+  function uniquePath(taken, dir, name) {
+    const dot = name.lastIndexOf('.');
+    const stem = dot > 0 ? name.slice(0, dot) : name;
+    const ext = dot > 0 ? name.slice(dot) : '';
+    let p = (dir ? dir + '/' : '') + name, n = 2;
+    while (taken.has(p.toLowerCase())) { p = (dir ? dir + '/' : '') + `${stem} (${n})${ext}`; n++; }
+    return p;
+  }
+
+  function createItem(ix, { title, folder, meta, tags }) {
+    const it = {
+      id: uid('b'), title: title || '未命名电池', folder: folder || 'root',
+      tags: tags || [], rating: 0, note: '',
+      meta: meta || {}, addedAt: new Date().toISOString(),
+    };
+    ix.items.push(it);
+    return it;
+  }
+
+  function attachFile(ix, itemId, { path, name, originalName, hash, fp, size, stats }) {
+    const f = {
+      id: uid('x'), item: itemId, path, name,
+      originalName: originalName || name,
+      hash, fp: fp || null, size: size || 0,
+      stats: stats || null,
+      addedAt: new Date().toISOString(),
+    };
+    ix.files.push(f);
+    return f;
+  }
+
+  function removeItem(ix, itemId) {
+    ix.items = ix.items.filter((i) => i.id !== itemId);
+    const gone = ix.files.filter((f) => f.item === itemId);
+    ix.files = ix.files.filter((f) => f.item !== itemId);
+    return gone;
+  }
+
+  /** merge item b into item a (files move, notes and tags are combined) */
+  function mergeItems(ix, aId, bId) {
+    if (aId === bId) return false;
+    const a = ix.items.find((i) => i.id === aId), b = ix.items.find((i) => i.id === bId);
+    if (!a || !b) return false;
+    ix.files.filter((f) => f.item === bId).forEach((f) => { f.item = aId; });
+    a.tags = [...new Set([...(a.tags || []), ...(b.tags || [])])];
+    a.note = [a.note, b.note].filter(Boolean).join('\n');
+    a.rating = Math.max(a.rating || 0, b.rating || 0);
+    for (const [k, v] of Object.entries(b.meta || {})) if (a.meta[k] == null || a.meta[k] === '') a.meta[k] = v;
+    ix.items = ix.items.filter((i) => i.id !== bId);
+    return true;
+  }
+
+  // ------------------------------------------------------------- summary row
+  /** one-line statistics used by the library table, computed from a parsed file */
+  function summarize(parsed, massMg) {
+    const file = { data: parsed, massMg: massMg || +(parsed.meta.massG * 1000).toPrecision(6), retentionBase: 'land' };
+    const rows = LP.an.cycleTable(file);
+    if (!rows.length) return null;
+    const p = parsed.points;
+    const mg = file.massMg / 1000;
+    const acc = {};
+    for (let j = 0; j < p.cycle.length; j++) {
+      if (p.dir[j] !== -1) continue;
+      const k = p.cycle[j];
+      (acc[k] = acc[k] || [0, 0]);
+      acc[k][0] += Math.abs(p.current_mA[j]); acc[k][1]++;
+    }
+    const rate = (c) => (acc[c] ? acc[c][0] / acc[c][1] / mg / 250 : 0);
+    const hi = rows.filter((r) => rate(r.cycle) >= 0.5);
+    const r1 = rows[0];
+    const num = (x, k = 1) => (Number.isFinite(x) ? +x.toFixed(k) : null);
+    let peak = null, peakAt = null, life80 = null;
+    if (hi.length >= 3) {
+      const s = hi.map((r) => r.dis_spcap);
+      let bi = 0; for (let i = 1; i < s.length; i++) if (s[i] > s[bi]) bi = i;
+      peak = num(s[bi]); peakAt = bi + 1;
+      const idx = s.findIndex((v, i) => i >= bi && v < 0.8 * s[bi]);
+      life80 = idx < 0 ? null : idx - bi;
+    }
+    return {
+      cycles: rows.length,
+      hiCycles: hi.length,
+      c1_ch: num(r1.ch_spcap), c1_dis: num(r1.dis_spcap), ice: num(r1.ce),
+      chEndV: num(r1.ch_vend, 3), chTimeH: num(r1.ch_time / 3600, 2),
+      timeCut: Math.abs(r1.ch_time / 3600 - 10) < 0.05 || Math.abs(r1.ch_time / 3600 - 15) < 0.05,
+      hi_c3: hi.length > 2 ? num(hi[2].dis_spcap) : null,
+      peak, peakAt, life80,
+      massMg: file.massMg,
+    };
+  }
+
+  LP.library = {
+    SCHEMA, sha256Hex, hashBuffer,
+    channelOf, stemOf, fingerprint, sameCell,
+    emptyIndex, normalizeIndex, uid,
+    childFolders, folderPath, isDescendant, addFolder, removeFolder, moveFolder,
+    itemsIn, filesOf, matchIncoming, uniquePath,
+    createItem, attachFile, removeItem, mergeItems, summarize,
+  };
+})(globalThis.LP = globalThis.LP || {});
+
+</script>
+  <script>/* js/store.js */
+// Storage back-ends for the library.
+//   FsaStore – a real folder on disk (File System Access API, Chrome / Edge,
+//              needs https or localhost; GitHub Pages qualifies)
+//   IdbStore – inside the browser (IndexedDB); works everywhere, survives reloads
+// Both expose the same small interface so the UI does not care which is active.
+(function (LP) {
+  'use strict';
+
+  const DB_NAME = 'landplot';
+  const DB_VER = 1;
+
+  function openDb() {
+    return new Promise((res, rej) => {
+      const q = indexedDB.open(DB_NAME, DB_VER);
+      q.onupgradeneeded = () => {
+        const db = q.result;
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        if (!db.objectStoreNames.contains('blobs')) db.createObjectStore('blobs');
+      };
+      q.onsuccess = () => res(q.result);
+      q.onerror = () => rej(q.error);
+    });
+  }
+  async function tx(store, mode, fn) {
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const t = db.transaction(store, mode);
+      const r = fn(t.objectStore(store));
+      t.oncomplete = () => res(r && r.result !== undefined ? r.result : undefined);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error);
+    });
+  }
+  const kvGet = (k) => tx('kv', 'readonly', (s) => s.get(k));
+  const kvSet = (k, v) => tx('kv', 'readwrite', (s) => s.put(v, k));
+  const kvDel = (k) => tx('kv', 'readwrite', (s) => s.delete(k));
+
+  const idb = { openDb, tx, kvGet, kvSet, kvDel };
+
+  const hasFsa = () => typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+  const INDEX_FILE = 'landplot-library.json';
+  const CEX = /\.(cex|txt)$/i;
+  const junk = (n) => /^[._]/.test(n) || /^(thumbs\.db|desktop\.ini)$/i.test(n);
+
+  // ------------------------------------------------------------ folder store
+  class FsaStore {
+    constructor(root) { this.root = root; this.kind = 'folder'; }
+    get label() { return this.root ? this.root.name : ''; }
+
+    static async restore() {
+      if (!hasFsa()) return null;
+      let h = null;
+      try { h = await kvGet('libRoot'); } catch (_) { return null; }
+      if (!h) return null;
+      let perm = 'denied';
+      try { perm = await h.queryPermission({ mode: 'readwrite' }); } catch (_) { return null; }
+      if (perm === 'granted') return new FsaStore(h);
+      return { needsPermission: true, handle: h, name: h.name };
+    }
+    static async regrant(handle) {
+      const p = await handle.requestPermission({ mode: 'readwrite' });
+      return p === 'granted' ? new FsaStore(handle) : null;
+    }
+    static async pick() {
+      const h = await window.showDirectoryPicker({ id: 'landplot-library', mode: 'readwrite' });
+      await kvSet('libRoot', h);
+      return new FsaStore(h);
+    }
+    static async forget() { await kvDel('libRoot'); }
+
+    async _dir(parts, create) {
+      let d = this.root;
+      for (const p of parts) d = await d.getDirectoryHandle(p, { create: !!create });
+      return d;
+    }
+    async _file(path, create) {
+      const parts = path.split('/').filter(Boolean);
+      const name = parts.pop();
+      const d = await this._dir(parts, create);
+      return d.getFileHandle(name, { create: !!create });
+    }
+    async mkdir(path) { await this._dir(path.split('/').filter(Boolean), true); }
+    async exists(path) { try { await this._file(path, false); return true; } catch (_) { return false; } }
+    async readFile(path) { return (await (await this._file(path, false)).getFile()).arrayBuffer(); }
+    async writeFile(path, buf) {
+      const fh = await this._file(path, true);
+      const w = await fh.createWritable();
+      await w.write(buf); await w.close();
+    }
+    async deleteFile(path) {
+      const parts = path.split('/').filter(Boolean);
+      const name = parts.pop();
+      const d = await this._dir(parts, false);
+      await d.removeEntry(name);
+    }
+    async movePath(from, to) {
+      if (from === to) return;
+      const buf = await this.readFile(from);
+      await this.writeFile(to, buf);
+      try { await this.deleteFile(from); } catch (_) { /* keep the copy if removal fails */ }
+    }
+    async readIndex() {
+      try { return JSON.parse(new TextDecoder().decode(await this.readFile(INDEX_FILE))); }
+      catch (_) { return null; }
+    }
+    async writeIndex(obj) {
+      obj.updatedAt = new Date().toISOString();
+      await this.writeFile(INDEX_FILE, new TextEncoder().encode(JSON.stringify(obj, null, 1)));
+    }
+    /** every .cex under the library folder, as {path, size} */
+    async scan(limit = 5000) {
+      const out = [];
+      const walk = async (dir, prefix, depth) => {
+        if (out.length >= limit || depth > 8) return;
+        for await (const [name, h] of dir.entries()) {
+          if (junk(name)) continue;
+          const p = prefix ? `${prefix}/${name}` : name;
+          if (h.kind === 'directory') await walk(h, p, depth + 1);
+          else if (CEX.test(name)) { const f = await h.getFile(); out.push({ path: p, size: f.size, mtime: f.lastModified }); }
+        }
+      };
+      await walk(this.root, '', 0);
+      return out;
+    }
+  }
+
+  // ----------------------------------------------------------- browser store
+  class IdbStore {
+    constructor() { this.kind = 'browser'; }
+    get label() { return '浏览器内'; }
+    static async open() { return new IdbStore(); }
+
+    async mkdir() { /* paths are virtual */ }
+    async exists(path) { return (await tx('blobs', 'readonly', (s) => s.get(path))) !== undefined; }
+    async readFile(path) {
+      const v = await tx('blobs', 'readonly', (s) => s.get(path));
+      if (v === undefined) throw new Error('库中找不到文件：' + path);
+      return v instanceof Blob ? v.arrayBuffer() : v;
+    }
+    async writeFile(path, buf) { await tx('blobs', 'readwrite', (s) => s.put(buf, path)); }
+    async deleteFile(path) { await tx('blobs', 'readwrite', (s) => s.delete(path)); }
+    async movePath(from, to) {
+      if (from === to) return;
+      const buf = await this.readFile(from);
+      await this.writeFile(to, buf);
+      await this.deleteFile(from);
+    }
+    async readIndex() { return (await kvGet('libIndex')) || null; }
+    async writeIndex(obj) { obj.updatedAt = new Date().toISOString(); await kvSet('libIndex', obj); }
+    async scan() {
+      const keys = await tx('blobs', 'readonly', (s) => s.getAllKeys());
+      return (keys || []).filter((k) => CEX.test(k)).map((k) => ({ path: k, size: 0, mtime: 0 }));
+    }
+    async clear() {
+      await tx('blobs', 'readwrite', (s) => s.clear());
+      await kvDel('libIndex');
+    }
+  }
+
+  // --------------------------------------------------------- workspace cache
+  // Keeps the current plotting session so a reload does not lose everything.
+  const workspace = {
+    async save(payload) { try { await kvSet('workspace', payload); } catch (e) { console.warn('工作区自动保存失败', e); } },
+    async load() { try { return await kvGet('workspace'); } catch (_) { return null; } },
+    async clear() { try { await kvDel('workspace'); } catch (_) { /* ignore */ } },
+  };
+
+  LP.store = { idb, hasFsa, FsaStore, IdbStore, workspace, INDEX_FILE, CEX, junk };
+})(globalThis.LP = globalThis.LP || {});
+
+</script>
+  <script>/* js/libui.js */
+// Library panel: folder tree, battery list, detail pane, import / rescan.
+(function (LP) {
+  'use strict';
+  const { h } = LP.ui;
+  const L = () => LP.library;
+  const S = () => LP.store;
+
+  const lib = {
+    store: null,        // FsaStore | IdbStore | null
+    pending: null,      // {needsPermission, handle, name}
+    ix: null,           // index object
+    sel: { folder: 'root', item: null, deep: true, q: '', sort: 'addedAt', desc: true },
+    open: false,
+    busy: false,
+    checked: new Set(),
+  };
+
+  const el = (id) => document.getElementById(id);
+  const toast = (m, bad) => LP.app && LP.app.toastMsg ? LP.app.toastMsg(m, bad) : console.log(m);
+
+  // ------------------------------------------------------------- persistence
+  let saveTimer = 0;
+  function saveSoon() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { if (lib.store && lib.ix) lib.store.writeIndex(lib.ix).catch((e) => toast('库索引保存失败：' + e.message, true)); }, 300);
+  }
+
+  async function useStore(store) {
+    lib.store = store; lib.pending = null;
+    lib.ix = L().normalizeIndex(await store.readIndex());
+    if (!(await store.readIndex())) await store.writeIndex(lib.ix);
+    render();
+  }
+
+  async function init() {
+    try {
+      const r = await S().FsaStore.restore();
+      if (r && r.needsPermission) { lib.pending = r; render(); return; }
+      if (r) { await useStore(r); return; }
+    } catch (e) { console.warn(e); }
+    const kept = await S().idb.kvGet('libIndex');
+    if (kept) await useStore(await S().IdbStore.open());
+    render();
+  }
+
+  async function bindFolder() {
+    if (!S().hasFsa()) { toast('这个浏览器不支持绑定本地文件夹，请用 Chrome 或 Edge；现在先用浏览器内的库。', true); return; }
+    try { await useStore(await S().FsaStore.pick()); toast(`已绑定库文件夹：${lib.store.label}`); }
+    catch (e) { if (e && e.name !== 'AbortError') toast('绑定失败：' + e.message, true); }
+  }
+  async function regrant() {
+    try {
+      const s = await S().FsaStore.regrant(lib.pending.handle);
+      if (s) { await useStore(s); toast(`已重新连接：${s.label}`); } else toast('没有拿到文件夹权限', true);
+    } catch (e) { toast('重新连接失败：' + e.message, true); }
+  }
+  async function useBrowserStore() { await useStore(await S().IdbStore.open()); toast('已启用浏览器内的库（数据保存在本机浏览器里）'); }
+
+  // ------------------------------------------------------------- import flow
+  function targetDir() {
+    const parts = L().folderPath(lib.ix, lib.sel.folder).slice(1); // drop the root label
+    return parts.map((s) => s.replace(/[\\/:*?"<>|]+/g, '_')).join('/');
+  }
+
+  /**
+   * Import a list of File objects. Source files are never modified or moved —
+   * a copy is written into the library folder under the selected category.
+   */
+  async function importFiles(files, opts = {}) {
+    if (!lib.store) { toast('请先选择库的保存位置', true); return; }
+    const cand = [...files].filter((f) => S().CEX.test(f.name) && !S().junk(f.name.split(/[\\/]/).pop()));
+    if (!cand.length) { toast('没有找到 .cex 文件', true); return; }
+    lib.busy = true; render();
+
+    const taken = new Set(lib.ix.files.map((f) => f.path.toLowerCase()));
+    const dir = targetDir();
+    const res = { added: 0, dup: 0, rerun: 0, cont: 0, fail: [] };
+    const merged = [];
+
+    for (let i = 0; i < cand.length; i++) {
+      const file = cand[i];
+      const name = file.name.split(/[\\/]/).pop();
+      setBusy(`正在导入 ${i + 1} / ${cand.length}：${name}`);
+      try {
+        const buf = await file.arrayBuffer();
+        const hash = await L().hashBuffer(buf);
+        let parsed = null;
+        try { parsed = LP.cex.parseCex(buf); } catch (e) { res.fail.push(`${name}：${e.message}`); continue; }
+        const fp = L().fingerprint(parsed, name);
+        const m = L().matchIncoming(lib.ix, hash, fp);
+
+        if (m.kind === 'duplicate') {
+          res.dup++;
+          // keep the earliest name but remember that this source name maps here
+          if (m.file && m.file.originalName !== name && !String(m.file.aka || '').includes(name)) {
+            m.file.aka = [...new Set([...(m.file.aka ? m.file.aka.split(' | ') : []), name])].join(' | ');
+          }
+          continue;
+        }
+
+        const stats = L().summarize(parsed);
+        let itemId;
+        if (m.kind === 'continuation' && m.item && opts.autoMerge !== false) {
+          itemId = m.item.id; res.cont++;
+          merged.push(`${name} → ${m.item.title}`);
+        } else if (m.kind === 'rerun' && m.item) {
+          itemId = m.item.id; res.rerun++;
+          merged.push(`${name} → ${m.item.title}（同一次测试的另一份导出）`);
+        } else {
+          const it = L().createItem(lib.ix, {
+            title: L().stemOf(name) || name,
+            folder: lib.sel.folder,
+            meta: { channel: fp.channel, massMg: stats ? stats.massMg : null, source: file.webkitRelativePath || '' },
+          });
+          itemId = it.id; res.added++;
+        }
+        const path = L().uniquePath(taken, dir, name);
+        taken.add(path.toLowerCase());
+        await lib.store.writeFile(path, buf);
+        L().attachFile(lib.ix, itemId, {
+          path, name: path.split('/').pop(), originalName: name,
+          hash, fp, size: file.size || buf.byteLength, stats,
+        });
+      } catch (e) {
+        res.fail.push(`${name}：${e && e.message ? e.message : '导入失败'}`);
+      }
+    }
+
+    lib.busy = false;
+    await lib.store.writeIndex(lib.ix);
+    render();
+    const parts = [];
+    if (res.added) parts.push(`新建 ${res.added} 只电池`);
+    if (res.cont) parts.push(`${res.cont} 个续测文件已并入已有电池`);
+    if (res.rerun) parts.push(`${res.rerun} 个同次测试的重复导出已并入`);
+    if (res.dup) parts.push(`${res.dup} 个内容完全相同的文件已跳过`);
+    if (res.fail.length) parts.push(`${res.fail.length} 个读取失败`);
+    if (res.fail.length) console.warn('导入失败的文件：\n' + res.fail.join('\n'));
+    if (merged.length) console.info('自动合并：\n' + merged.join('\n'));
+    toast(parts.join('；') || '没有新增文件');
+  }
+
+  /**
+   * Re-read the library folder and re-link by content hash. This is what makes
+   * renaming or re-arranging files in Finder safe, and what picks up files that
+   * were dropped into the folder from outside.
+   */
+  async function rescan() {
+    if (!lib.store) return;
+    lib.busy = true; setBusy('正在扫描库文件夹…'); render();
+    const found = await lib.store.scan();
+    const byPath = new Map(lib.ix.files.map((f) => [f.path, f]));
+    const byHash = new Map(lib.ix.files.map((f) => [f.hash, f]));
+    const seen = new Set();
+    let moved = 0, added = 0, lost = 0;
+    const taken = new Set(lib.ix.files.map((f) => f.path.toLowerCase()));
+
+    for (let i = 0; i < found.length; i++) {
+      const e = found[i];
+      if (e.path === S().INDEX_FILE) continue;
+      setBusy(`扫描 ${i + 1} / ${found.length}`);
+      let buf;
+      try { buf = await lib.store.readFile(e.path); } catch (_) { continue; }
+      const hash = await L().hashBuffer(buf);
+      const known = byHash.get(hash);
+      if (known) {
+        seen.add(known.id);
+        if (known.path !== e.path) { known.path = e.path; known.name = e.path.split('/').pop(); moved++; }
+        continue;
+      }
+      if (byPath.has(e.path)) { // same path, new content → treat as replacement
+        const f = byPath.get(e.path); f.hash = hash; seen.add(f.id); continue;
+      }
+      let parsed = null;
+      try { parsed = LP.cex.parseCex(buf); } catch (_) { continue; }
+      const name = e.path.split('/').pop();
+      const fp = L().fingerprint(parsed, name);
+      const m = L().matchIncoming(lib.ix, hash, fp);
+      let itemId;
+      if ((m.kind === 'continuation' || m.kind === 'rerun') && m.item) itemId = m.item.id;
+      else itemId = L().createItem(lib.ix, { title: L().stemOf(name) || name, folder: folderForPath(e.path), meta: { channel: fp.channel } }).id;
+      taken.add(e.path.toLowerCase());
+      const f = L().attachFile(lib.ix, itemId, {
+        path: e.path, name, originalName: name, hash, fp,
+        size: e.size, stats: L().summarize(parsed),
+      });
+      seen.add(f.id); added++;
+    }
+    for (const f of lib.ix.files) if (!seen.has(f.id)) { f.missing = true; lost++; } else delete f.missing;
+
+    lib.busy = false;
+    await lib.store.writeIndex(lib.ix);
+    render();
+    toast(`扫描完成：${found.length} 个文件；新增 ${added}，路径已更新 ${moved}${lost ? `，${lost} 个在磁盘上找不到（已标记）` : ''}`);
+  }
+
+  /** map a disk sub-folder to a library category, creating it when needed */
+  function folderForPath(path) {
+    const parts = path.split('/').slice(0, -1);
+    let parent = 'root';
+    for (const name of parts) {
+      let f = lib.ix.folders.find((x) => x.parent === parent && x.name === name);
+      if (!f) f = L().addFolder(lib.ix, parent, name);
+      parent = f.id;
+    }
+    return parent;
+  }
+
+  // --------------------------------------------------------------- plotting
+  async function loadToWorkspace(itemIds, replace) {
+    const ids = itemIds.length ? itemIds : (lib.sel.item ? [lib.sel.item] : []);
+    if (!ids.length) { toast('请先选择电池', true); return; }
+    const picks = [];
+    for (const id of ids) for (const f of L().filesOf(lib.ix, id)) if (!f.missing) picks.push({ item: lib.ix.items.find((i) => i.id === id), f });
+    if (!picks.length) { toast('选中的电池没有可用文件', true); return; }
+    lib.busy = true; setBusy('正在载入…'); render();
+    const bufs = [];
+    for (const p of picks) {
+      try { bufs.push({ name: p.item.title + (L().filesOf(lib.ix, p.item.id).length > 1 ? ` · ${p.f.name}` : ''), buf: await lib.store.readFile(p.f.path), massMg: p.item.meta.massMg }); }
+      catch (e) { console.warn(p.f.path, e); }
+    }
+    lib.busy = false;
+    if (!bufs.length) { render(); toast('文件读取失败，试试「重新扫描」', true); return; }
+    LP.app.loadFromLibrary(bufs, { replace });
+    close();
+  }
+
+  // ------------------------------------------------------------------ render
+  function setBusy(msg) { const b = el('libBusy'); if (b) b.textContent = msg || ''; }
+
+  function statOf(item) {
+    const fs = L().filesOf(lib.ix, item.id).filter((f) => f.stats);
+    if (!fs.length) return null;
+    return fs.reduce((a, b) => ((b.stats.cycles || 0) > (a.stats.cycles || 0) ? b : a)).stats;
+  }
+
+  function visibleItems() {
+    let list = L().itemsIn(lib.ix, lib.sel.folder, lib.sel.deep);
+    const q = lib.sel.q.trim().toLowerCase();
+    if (q) {
+      list = list.filter((i) => {
+        const files = L().filesOf(lib.ix, i.id);
+        return [i.title, i.note, (i.tags || []).join(' '), i.meta.formula || '', i.meta.channel || '',
+          ...files.map((f) => f.name + ' ' + (f.originalName || '') + ' ' + (f.aka || ''))].join(' ').toLowerCase().includes(q);
+      });
+    }
+    const key = lib.sel.sort;
+    list.sort((a, b) => {
+      const av = key === 'title' ? a.title : key === 'rating' ? (a.rating || 0) : key === 'cycles' ? ((statOf(a) || {}).cycles || 0) : a.addedAt;
+      const bv = key === 'title' ? b.title : key === 'rating' ? (b.rating || 0) : key === 'cycles' ? ((statOf(b) || {}).cycles || 0) : b.addedAt;
+      const r = typeof av === 'string' ? av.localeCompare(bv, 'zh-CN', { numeric: true }) : (av - bv);
+      return lib.sel.desc ? -r : r;
+    });
+    return list;
+  }
+
+  function treeNode(fid, depth) {
+    const f = lib.ix.folders.find((x) => x.id === fid);
+    const kids = L().childFolders(lib.ix, fid);
+    const n = L().itemsIn(lib.ix, fid, true).length;
+    const node = h('div', {
+      class: 'lib-tree-row' + (lib.sel.folder === fid ? ' on' : ''),
+      style: { paddingLeft: (8 + depth * 14) + 'px' },
+      draggable: fid !== 'root',
+      ondragstart: (e) => { e.dataTransfer.setData('text/landplot-folder', fid); e.stopPropagation(); },
+      ondragover: (e) => { e.preventDefault(); node.classList.add('drop'); },
+      ondragleave: () => node.classList.remove('drop'),
+      ondrop: (e) => {
+        e.preventDefault(); e.stopPropagation(); node.classList.remove('drop');
+        const it = e.dataTransfer.getData('text/landplot-items');
+        const fo = e.dataTransfer.getData('text/landplot-folder');
+        if (it) { JSON.parse(it).forEach((id) => { const x = lib.ix.items.find((y) => y.id === id); if (x) x.folder = fid; }); saveSoon(); render(); }
+        else if (fo) { if (L().moveFolder(lib.ix, fo, fid)) { saveSoon(); render(); } else toast('不能把分类拖进它自己的子分类', true); }
+      },
+      onclick: () => { lib.sel.folder = fid; lib.checked.clear(); render(); },
+    },
+      h('span', { class: 'lib-tree-name' }, f ? f.name : '?'),
+      h('span', { class: 'lib-tree-n' }, n || ''));
+    return [node, ...kids.flatMap((c) => treeNode(c.id, depth + 1))];
+  }
+
+  function detail(item) {
+    if (!item) return h('div', { class: 'lib-empty' }, '选中一只电池查看详情');
+    const files = L().filesOf(lib.ix, item.id);
+    const st = statOf(item);
+    const field = (label, value, onInput, ph) => h('div', { class: 'lib-field' },
+      h('label', null, label),
+      h('input', { type: 'text', value: value || '', placeholder: ph || '', oninput: (e) => { onInput(e.target.value); saveSoon(); } }));
+    return h('div', { class: 'lib-detail' },
+      h('input', {
+        class: 'lib-title', type: 'text', value: item.title,
+        oninput: (e) => { item.title = e.target.value; saveSoon(); const r = document.querySelector(`[data-item="${item.id}"] .li-title`); if (r) r.textContent = e.target.value; },
+      }),
+      h('div', { class: 'lib-stars' }, ...[1, 2, 3, 4, 5].map((n) =>
+        h('button', { class: 'star' + ((item.rating || 0) >= n ? ' on' : ''), title: `${n} 星`, onclick: () => { item.rating = item.rating === n ? 0 : n; saveSoon(); render(); } }, '★'))),
+      field('电解液配方', item.meta.formula, (v) => { item.meta.formula = v; }, '例如 1 M LiBOB / DMGBL'),
+      field('正极 / 负极', item.meta.cathode, (v) => { item.meta.cathode = v; }, '例如 Li | LRMO'),
+      field('活性物质质量 (mg)', item.meta.massMg, (v) => { item.meta.massMg = v === '' ? null : Number(v); }, st ? String(st.massMg) : ''),
+      field('电压窗口', item.meta.window, (v) => { item.meta.window = v; }, '例如 2.0–4.7 V'),
+      field('测试协议', item.meta.protocol, (v) => { item.meta.protocol = v; }, '例如 0.1C 活化 1 圈 → 1C'),
+      field('标签（逗号分隔）', (item.tags || []).join(', '), (v) => { item.tags = v.split(/[,，]/).map((s) => s.trim()).filter(Boolean); }),
+      h('div', { class: 'lib-field' }, h('label', null, '备注'),
+        h('textarea', { rows: 4, value: item.note || '', oninput: (e) => { item.note = e.target.value; saveSoon(); } })),
+      st ? h('div', { class: 'lib-stats' },
+        h('div', null, h('b', null, st.cycles), ' 圈'),
+        h('div', null, '首圈 ', h('b', null, st.c1_dis ?? '—'), ' mAh g⁻¹'),
+        h('div', null, 'ICE ', h('b', null, st.ice ?? '—'), '%'),
+        h('div', null, '峰值 ', h('b', null, st.peak ?? '—'), st.peakAt ? ` @${st.peakAt}` : ''),
+        h('div', null, '到 80% ', h('b', null, st.life80 ?? '—'), ' 圈'),
+        st.timeCut ? h('div', { class: 'warn' }, '首充被计时截断') : null) : null,
+      h('div', { class: 'lib-files' },
+        h('h5', null, `文件（${files.length}）`),
+        ...files.map((f) => h('div', { class: 'lib-file' + (f.missing ? ' missing' : '') },
+          h('span', { class: 'fn', title: f.path }, f.name),
+          f.stats ? h('span', { class: 'fm' }, `${f.stats.cycles} 圈`) : null,
+          f.originalName && f.originalName !== f.name ? h('span', { class: 'fm' }, `原名 ${f.originalName}`) : null,
+          f.missing ? h('span', { class: 'fm warn' }, '磁盘上找不到') : null,
+          h('button', { class: 'btn small ghost', title: '从这只电池移出（文件保留在磁盘上）', onclick: () => { lib.ix.files = lib.ix.files.filter((x) => x.id !== f.id); saveSoon(); render(); } }, '移出')))),
+      h('div', { class: 'lib-actions' },
+        h('button', { class: 'btn primary', onclick: () => loadToWorkspace([item.id], false) }, '载入绘图'),
+        h('button', { class: 'btn', onclick: () => mergeInto(item) }, '合并到…'),
+        h('button', { class: 'btn danger', onclick: () => delItem(item) }, '删除条目')));
+  }
+
+  function mergeInto(item) {
+    const others = lib.ix.items.filter((i) => i.id !== item.id);
+    if (!others.length) { toast('库里没有别的电池', true); return; }
+    const name = prompt('把这只电池合并到哪一只？输入目标电池名称的一部分：');
+    if (!name) return;
+    const hit = others.filter((i) => i.title.toLowerCase().includes(name.toLowerCase()));
+    if (!hit.length) { toast('没有找到匹配的电池', true); return; }
+    if (hit.length > 1) { toast(`匹配到 ${hit.length} 只，请输入更完整的名称`, true); return; }
+    if (L().mergeItems(lib.ix, hit[0].id, item.id)) { lib.sel.item = hit[0].id; saveSoon(); render(); toast(`已合并到「${hit[0].title}」`); }
+  }
+
+  async function delItem(item) {
+    const files = L().filesOf(lib.ix, item.id);
+    const alsoFiles = files.length && confirm(`同时删除库文件夹里的 ${files.length} 个文件？\n\n确定 = 连文件一起删除\n取消 = 只删除条目，文件留在磁盘上\n\n（原始来源文件夹中的文件始终不会被动）`);
+    L().removeItem(lib.ix, item.id);
+    if (alsoFiles) for (const f of files) { try { await lib.store.deleteFile(f.path); } catch (e) { console.warn(e); } }
+    lib.sel.item = null; saveSoon(); render();
+  }
+
+  function itemRow(item) {
+    const st = statOf(item);
+    const nf = L().filesOf(lib.ix, item.id).length;
+    const on = lib.checked.has(item.id);
+    return h('div', {
+      class: 'lib-item' + (lib.sel.item === item.id ? ' sel' : ''), 'data-item': item.id, draggable: true,
+      ondragstart: (e) => {
+        const ids = lib.checked.size ? [...lib.checked] : [item.id];
+        e.dataTransfer.setData('text/landplot-items', JSON.stringify(ids));
+      },
+      onclick: () => { lib.sel.item = item.id; render(); },
+      ondblclick: () => loadToWorkspace([item.id], false),
+    },
+      h('input', { type: 'checkbox', checked: on, onclick: (e) => { e.stopPropagation(); if (e.target.checked) lib.checked.add(item.id); else lib.checked.delete(item.id); renderBar(); } }),
+      h('div', { class: 'li-main' },
+        h('div', { class: 'li-title' }, item.title),
+        h('div', { class: 'li-sub' },
+          item.meta.formula || '—',
+          nf > 1 ? h('span', { class: 'chip' }, `${nf} 个文件`) : null,
+          ...(item.tags || []).map((t) => h('span', { class: 'chip tag' }, t)))),
+      h('div', { class: 'li-num' }, st ? st.cycles : '—'),
+      h('div', { class: 'li-num' }, st && st.ice != null ? st.ice : '—'),
+      h('div', { class: 'li-num' }, st && st.peak != null ? st.peak : '—'),
+      h('div', { class: 'li-num' }, st && st.life80 != null ? st.life80 : '—'),
+      h('div', { class: 'li-stars' }, '★'.repeat(item.rating || 0)));
+  }
+
+  function renderBar() {
+    const b = el('libSelBar');
+    if (!b) return;
+    const n = lib.checked.size;
+    b.hidden = !n;
+    b.innerHTML = '';
+    if (!n) return;
+    b.append(h('span', null, `已选 ${n} 只`),
+      h('button', { class: 'btn small primary', onclick: () => loadToWorkspace([...lib.checked], false) }, '载入绘图'),
+      h('button', { class: 'btn small', onclick: () => loadToWorkspace([...lib.checked], true) }, '替换当前工作区'),
+      h('button', { class: 'btn small ghost', onclick: () => { lib.checked.clear(); render(); } }, '取消选择'));
+  }
+
+  function render() { renderPanel(); renderMini(); }
+
+  function renderPanel() {
+    const root = el('libPanel');
+    if (!root) return;
+    root.hidden = !lib.open;
+    if (!lib.open) return;
+    root.innerHTML = '';
+
+    const head = h('div', { class: 'lib-head' },
+      h('div', { class: 'lib-where' },
+        lib.store
+          ? h('span', null, lib.store.kind === 'folder' ? `库文件夹：${lib.store.label}` : '库：浏览器内（本机）')
+          : h('span', { class: 'warn' }, '还没有选择库的保存位置'),
+        lib.store && lib.store.kind === 'folder' ? h('button', { class: 'btn small ghost', onclick: rescan }, '重新扫描') : null,
+        h('button', { class: 'btn small ghost', onclick: bindFolder }, lib.store && lib.store.kind === 'folder' ? '换文件夹' : '绑定本地文件夹'),
+        !lib.store ? h('button', { class: 'btn small ghost', onclick: useBrowserStore }, '先用浏览器内的库') : null),
+      h('div', { class: 'spacer' }),
+      h('span', { class: 'lib-busy', id: 'libBusy' }),
+      h('button', { class: 'btn icon', title: '关闭', onclick: close }, '✕'));
+
+    if (lib.pending) {
+      root.append(head, h('div', { class: 'lib-reconnect' },
+        h('p', null, `上次用的库文件夹是「${lib.pending.name}」。浏览器需要你再点一次才能继续访问它。`),
+        h('button', { class: 'btn primary', onclick: regrant }, '重新连接这个文件夹'),
+        h('button', { class: 'btn ghost', onclick: bindFolder }, '换一个文件夹'),
+        h('button', { class: 'btn ghost', onclick: useBrowserStore }, '改用浏览器内的库')));
+      return;
+    }
+    if (!lib.store) {
+      root.append(head, h('div', { class: 'lib-reconnect' },
+        h('p', null, '库可以存在磁盘上的一个文件夹里（推荐，可备份、可同步、可在访达里直接看），也可以存在浏览器内。'),
+        h('p', { class: 'hint' }, '导入时只会把源文件复制一份到库文件夹，原来的文件不会被改动或移动。'),
+        h('button', { class: 'btn primary', onclick: bindFolder }, '选择库文件夹'),
+        h('button', { class: 'btn ghost', onclick: useBrowserStore }, '存在浏览器内')));
+      return;
+    }
+
+    const tools = h('div', { class: 'lib-tools' },
+      h('button', { class: 'btn primary', onclick: () => el('libFileInput').click() }, '导入 .cex'),
+      h('button', { class: 'btn', onclick: () => el('libDirInput').click() }, '导入文件夹'),
+      h('span', { class: 'lib-into' }, '导入到：', L().folderPath(lib.ix, lib.sel.folder).join(' / ')),
+      h('div', { class: 'spacer' }),
+      h('input', { class: 'lib-search', type: 'search', placeholder: '搜索名称 / 配方 / 标签 / 文件名', value: lib.sel.q, oninput: (e) => { lib.sel.q = e.target.value; renderList(); } }),
+      h('label', { class: 'lib-deep' }, h('input', { type: 'checkbox', checked: lib.sel.deep, onchange: (e) => { lib.sel.deep = e.target.checked; renderList(); } }), '含子分类'));
+
+    const tree = h('div', { class: 'lib-tree' },
+      ...treeNode('root', 0),
+      h('div', { class: 'lib-tree-btns' },
+        h('button', { class: 'btn small ghost', onclick: () => { const n = prompt('新分类名称：'); if (n) { const f = L().addFolder(lib.ix, lib.sel.folder, n); lib.sel.folder = f.id; saveSoon(); render(); } } }, '＋ 子分类'),
+        h('button', { class: 'btn small ghost', disabled: lib.sel.folder === 'root', onclick: () => { const f = lib.ix.folders.find((x) => x.id === lib.sel.folder); const n = prompt('重命名分类：', f.name); if (n) { f.name = n; saveSoon(); render(); } } }, '重命名'),
+        h('button', { class: 'btn small ghost', disabled: lib.sel.folder === 'root', onclick: () => { if (confirm('删除这个分类？里面的电池会移到上一层，文件不会被删除。')) { const up = (lib.ix.folders.find((x) => x.id === lib.sel.folder) || {}).parent || 'root'; L().removeFolder(lib.ix, lib.sel.folder); lib.sel.folder = up; saveSoon(); render(); } } }, '删除')));
+
+    const listWrap = h('div', { class: 'lib-list', id: 'libList' });
+    const bar = h('div', { class: 'lib-selbar', id: 'libSelBar', hidden: true });
+    const body = h('div', { class: 'lib-body' }, tree,
+      h('div', { class: 'lib-mid' }, bar, listWrap),
+      h('div', { class: 'lib-side', id: 'libSide' }));
+
+    root.append(head, tools, body);
+    renderList();
+    renderBar();
+  }
+
+  function renderList() {
+    const wrap = el('libList');
+    if (!wrap) return;
+    const list = visibleItems();
+    const sortBtn = (key, label) => h('button', {
+      class: 'lib-th' + (lib.sel.sort === key ? ' on' : ''),
+      onclick: () => { if (lib.sel.sort === key) lib.sel.desc = !lib.sel.desc; else { lib.sel.sort = key; lib.sel.desc = true; } renderList(); },
+    }, label);
+    wrap.innerHTML = '';
+    wrap.append(h('div', { class: 'lib-thead' },
+      h('span', null, ''), sortBtn('title', '电池'),
+      sortBtn('cycles', '圈数'), h('span', { class: 'lib-th' }, 'ICE'),
+      h('span', { class: 'lib-th' }, '峰值'), h('span', { class: 'lib-th' }, '到80%'),
+      sortBtn('rating', '评分')));
+    if (!list.length) wrap.append(h('div', { class: 'lib-empty' }, lib.ix.items.length ? '这个分类下没有电池' : '库是空的，点左上角「导入 .cex」开始'));
+    for (const it of list) wrap.append(itemRow(it));
+    const side = el('libSide');
+    if (side) { side.innerHTML = ''; side.append(detail(lib.ix.items.find((i) => i.id === lib.sel.item))); }
+  }
+
+  // ------------------------------------------------- compact panel (sidebar)
+  // A folded-away version of the library inside the left sidebar, so a battery
+  // can go straight to the plot without opening the full window.
+  const mini = { q: '', folder: 'root', checked: new Set() };
+
+  function miniItems() {
+    const keep = lib.sel;
+    lib.sel = Object.assign({}, keep, { folder: mini.folder, q: mini.q, deep: true });
+    let list;
+    try { list = visibleItems(); } finally { lib.sel = keep; }
+    return list;
+  }
+
+  function renderMini() {
+    const box = el('libMiniBody');
+    if (!box) return;
+    box.innerHTML = '';
+    if (box.hidden) return;                       // collapsed: nothing to draw
+    if (!LP.library || !LP.store) return;
+
+    if (lib.pending) {
+      box.append(h('div', { class: 'lib-mini-hint' }, `上次绑定的文件夹：${lib.pending.name}`),
+        h('button', { class: 'btn small', onclick: () => regrant().then(render) }, '重新连接'));
+      return;
+    }
+    if (!lib.store) {
+      box.append(h('div', { class: 'lib-mini-hint' }, '还没有设置电池库。'),
+        h('div', { class: 'lib-mini-foot' },
+          h('button', { class: 'btn small', onclick: () => bindFolder().then(render) }, '绑定文件夹'),
+          h('button', { class: 'btn small ghost', onclick: () => useBrowserStore().then(render) }, '存在浏览器内')));
+      return;
+    }
+
+    const folders = lib.ix.folders.map((f) => [f.id, L().folderPath(lib.ix, f.id).join(' / ')])
+      .sort((a, b) => a[1].localeCompare(b[1], 'zh-CN', { numeric: true }));
+    const fsel = h('select', {
+      onchange: (e) => { mini.folder = e.target.value; renderMini(); },
+    }, ...folders.map(([id, path]) => h('option', { value: id, selected: id === mini.folder }, path)));
+    const q = h('input', {
+      type: 'search', placeholder: '搜索电池…', value: mini.q,
+      oninput: (e) => { mini.q = e.target.value; renderMini(); },
+    });
+    box.append(h('div', { class: 'lib-mini-tools' }, fsel, q));
+
+    const list = miniItems();
+    const wrap = h('div', { class: 'lib-mini-list' });
+    if (!list.length) {
+      wrap.append(h('div', { class: 'lib-mini-hint' }, lib.ix.items.length ? '这个分类下没有电池' : '库是空的，点「管理…」导入 .cex'));
+    }
+    for (const it of list) {
+      const st = statOf(it);
+      const on = mini.checked.has(it.id);
+      wrap.append(h('div', { class: 'lib-mini-row' + (on ? ' on' : '') },
+        h('input', {
+          type: 'checkbox', checked: on,
+          onchange: (e) => { e.target.checked ? mini.checked.add(it.id) : mini.checked.delete(it.id); renderMini(); },
+        }),
+        h('span', {
+          class: 'lib-mini-name', title: `${it.title}${st ? ` · ${st.cycles} 圈` : ''}（双击直接作图）`,
+          onclick: () => { e_toggle(it.id); },
+          ondblclick: () => loadToWorkspace([it.id], false),
+        }, it.title),
+        h('span', { class: 'lib-mini-n' }, st ? `${st.cycles} 圈` : '—')));
+    }
+    box.append(wrap);
+
+    const n = mini.checked.size;
+    box.append(h('div', { class: 'lib-mini-foot' },
+      h('span', { class: 'muted' }, n ? `已选 ${n}` : '勾选或双击电池'),
+      h('span', { style: { flex: '1' } }),
+      h('button', { class: 'btn small', disabled: !n, title: '加入当前绘图区', onclick: () => pick(false) }, '追加'),
+      h('button', { class: 'btn small', disabled: !n, title: '替换当前绘图区的全部文件', onclick: () => pick(true) }, '替换')));
+
+    function pick(replace) {
+      const ids = [...mini.checked];
+      mini.checked.clear();
+      loadToWorkspace(ids, replace).then(renderMini, renderMini);
+    }
+  }
+  function e_toggle(id) {
+    mini.checked.has(id) ? mini.checked.delete(id) : mini.checked.add(id);
+    renderMini();
+  }
+
+  function open() { lib.open = true; render(); if (!lib.store && !lib.pending) init(); }
+  function close() { lib.open = false; const r = el('libPanel'); if (r) r.hidden = true; renderMini(); }
+
+  LP.libui = {
+    lib, init, open, close, render, renderMini, importFiles, rescan, loadToWorkspace,
+    bindFolder, useBrowserStore, mini,
+  };
+})(globalThis.LP = globalThis.LP || {});
+
+</script>
   <script>/* js/main.js */
 // Application wiring: state, rendering, plot interaction, files, history.
 (function (LP) {
@@ -2996,6 +4184,7 @@ table.kv td { text-align: left; }
     LP.ui.renderSeriesList(app);
     if (o.panels) { LP.ui.renderInspector(app); LP.ui.renderPresets(app); }
     if (o.files) LP.ui.renderFiles(app);
+    if (app.saveWorkspaceSoon) app.saveWorkspaceSoon();
   };
   function renderAllPanels() {
     LP.ui.renderFiles(app);
@@ -3116,6 +4305,61 @@ table.kv td { text-align: left; }
     LP.ui.renderFiles(app);
   }
 
+  /** load buffers handed over by the library panel */
+  app.loadFromLibrary = (list, opts = {}) => {
+    if (opts.replace) { for (const f of st.files) graveyard.set(f.id, f); st.files = []; st.series = []; }
+    const added = [];
+    for (const it of list) {
+      try { added.push(addParsed(it.name, it.buf, it.massMg ? { massMg: it.massMg } : {})); }
+      catch (e) { console.warn(it.name, e); }
+    }
+    if (!added.length) { toast('没有可载入的文件', true); return; }
+    if (!st.series.length) applyPreset('cycling', true);
+    else app.changed({ panels: true, files: true });
+    app.ui.openFile = added.length === 1 ? added[0].id : null;
+    LP.ui.renderFiles(app);
+    toast(`已从数据库载入 ${added.length} 个文件`);
+  };
+
+  // ---------------- workspace auto-save ----------------
+  // The plotting session is kept in IndexedDB so a reload does not lose it.
+  let wsTimer = 0, wsReady = false;
+  function saveWorkspaceSoon() {
+    if (!wsReady || !LP.store) return;
+    clearTimeout(wsTimer);
+    wsTimer = setTimeout(() => {
+      const total = st.files.reduce((a, f) => a + (f.buffer ? f.buffer.byteLength : 0), 0);
+      if (!st.files.length) { LP.store.workspace.clear(); return; }
+      if (total > 180 * 1024 * 1024) return; // too big to keep; project files still work
+      LP.store.workspace.save({
+        savedAt: Date.now(),
+        series: st.series, fig: st.fig, annotations: st.annotations,
+        files: st.files.map((f) => ({ id: f.id, name: f.name, alias: f.alias, massMg: f.massMg,
+          retentionBase: f.retentionBase, cycleMode: f.cycleMode, picked: f.picked !== false, buffer: f.buffer })),
+      });
+    }, 1200);
+  }
+  app.saveWorkspaceSoon = saveWorkspaceSoon;
+
+  async function restoreWorkspace() {
+    if (!LP.store) { wsReady = true; return; }
+    let w = null;
+    try { w = await LP.store.workspace.load(); } catch (_) { /* ignore */ }
+    wsReady = true;
+    if (!w || !w.files || !w.files.length) return;
+    try {
+      const files = [];
+      for (const fo of w.files) { try { files.push(addParsed(fo.name, fo.buffer, fo)); } catch (e) { console.warn(fo.name, e); } }
+      if (!files.length) return;
+      if (w.fig) st.fig = w.fig;
+      st.annotations = w.annotations || [];
+      st.series = (w.series || []).filter((s) => files.some((f) => f.id === s.fileId));
+      renderAllPanels(); render(); commitNow();
+      const when = new Date(w.savedAt || Date.now());
+      toast(`已恢复上次的 ${files.length} 个文件（${when.getHours()}:${String(when.getMinutes()).padStart(2, '0')} 自动保存）`);
+    } catch (e) { console.warn('恢复工作区失败', e); }
+  }
+
   app.reparse = (f) => {
     try { f.data = LP.cex.parseCex(f.buffer, { cycleMode: f.cycleMode }); }
     catch (e) { toast(e.message, true); }
@@ -3130,6 +4374,34 @@ table.kv td { text-align: left; }
     st.series = st.series.filter((s) => s.fileId !== id);
     toast(`已移除“${f.alias}”（可撤销）`);
     app.changed({ panels: true, files: true });
+  };
+
+  /** remove several files at once (undoable) */
+  app.removeFiles = (ids) => {
+    const set = new Set(ids);
+    const gone = st.files.filter((f) => set.has(f.id));
+    if (!gone.length) return;
+    gone.forEach((f) => graveyard.set(f.id, f));
+    st.files = st.files.filter((f) => !set.has(f.id));
+    st.series = st.series.filter((x) => !set.has(x.fileId));
+    if (!st.series.some((x) => x.id === st.sel.id)) st.sel.id = st.series[0]?.id ?? null;
+    toast(`已移除 ${gone.length} 个文件（可撤销）`);
+    app.changed({ panels: true, files: true });
+  };
+
+  /** clear everything and start over */
+  app.newWorkspace = () => {
+    if (st.files.length || st.series.length) {
+      const n = st.files.length;
+      st.files.forEach((f) => graveyard.set(f.id, f));
+      st.files = []; st.series = []; st.annotations = [];
+      st.fig = LP.io.applyDefaultStyle(LP.state.defaultFigure());
+      st.sel = { tab: 'series', id: null };
+      app.ui.openFile = null;
+      toast(`已清空工作区${n ? `（${n} 个文件，可撤销）` : ''}`);
+    }
+    renderAllPanels(); render(); commitNow();
+    if (LP.store) LP.store.workspace.clear();
   };
 
   // ---------------- series ----------------
@@ -3154,6 +4426,18 @@ table.kv td { text-align: left; }
   app.removeSeries = (id) => {
     st.series = st.series.filter((s) => s.id !== id);
     if (st.sel.id === id) st.sel.id = st.series[0]?.id ?? null;
+    app.changed({ panels: true });
+  };
+  app.removeAllSeries = () => {
+    if (!st.series.length) return;
+    const n = st.series.length;
+    st.series = []; st.sel.id = null;
+    toast(`已删除 ${n} 条数据系列（可撤销）`);
+    app.changed({ panels: true });
+  };
+  app.setAllSeriesVisible = (v) => {
+    if (!st.series.length) return;
+    st.series.forEach((x) => { x.visible = v; });
     app.changed({ panels: true });
   };
   app.moveSeries = (id, d) => {
@@ -3565,7 +4849,45 @@ table.kv td { text-align: left; }
       if (e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? app.redo() : app.undo(); }
       else if (e.key.toLowerCase() === 'y') { e.preventDefault(); app.redo(); }
     });
-    window.addEventListener('beforeunload', (e) => { if (st.files.length) { e.preventDefault(); e.returnValue = ''; } });
+    $('btnNew').onclick = () => {
+      if (st.files.length && !confirm(`清空当前工作区？${st.files.length} 个文件、${st.series.length} 条数据系列会被移除（可用 Ctrl+Z 撤销）。`)) return;
+      app.newWorkspace();
+    };
+    $('btnClearFiles').onclick = () => {
+      if (!st.files.length) { toast('当前没有已载入的文件'); return; }
+      if (!confirm(`移除全部 ${st.files.length} 个文件？（可用 Ctrl+Z 撤销）`)) return;
+      app.removeFiles(st.files.map((f) => f.id));
+    };
+    $('btnClearSeries').onclick = () => {
+      if (!st.series.length) { toast('当前没有数据系列'); return; }
+      if (!confirm(`删除全部 ${st.series.length} 条数据系列？（可用 Ctrl+Z 撤销）`)) return;
+      app.removeAllSeries();
+    };
+
+    // library panel
+    $('btnLibrary').addEventListener('click', () => LP.libui.open());
+    $('btnLibManage').addEventListener('click', (e) => { e.stopPropagation(); LP.libui.open(); });
+    const setMini = (on) => {
+      $('libMiniBody').hidden = !on;
+      $('libMiniCaret').textContent = on ? '\u25be' : '\u25b8';
+      try { localStorage.setItem('lp.libMini', on ? '1' : '0'); } catch (_) { /* ignore */ }
+      if (on && LP.libui) { LP.libui.renderMini(); if (!LP.libui.lib.store && !LP.libui.lib.pending) LP.libui.init().catch(() => {}); }
+    };
+    $('libMiniHead').addEventListener('click', () => setMini($('libMiniBody').hidden));
+    let miniOpen = false;
+    try { miniOpen = localStorage.getItem('lp.libMini') === '1'; } catch (_) { /* ignore */ }
+    setMini(miniOpen);
+    $('libFileInput').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; if (f.length) LP.libui.importFiles(f); });
+    $('libDirInput').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; if (f.length) LP.libui.importFiles(f); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && LP.libui && LP.libui.lib.open) LP.libui.close();
+    });
+    // only warn on close when the session is too large to be auto-saved
+    window.addEventListener('beforeunload', (e) => {
+      const total = st.files.reduce((a, f) => a + (f.buffer ? f.buffer.byteLength : 0), 0);
+      if (st.files.length && (!LP.store || total > 180 * 1024 * 1024)) { e.preventDefault(); e.returnValue = ''; }
+    });
+
   }
 
   // ---------------- start ----------------
@@ -3578,6 +4900,8 @@ table.kv td { text-align: left; }
   renderAllPanels();
   render();
   commitNow();
+  if (LP.libui) LP.libui.init().catch((e) => console.warn('库初始化失败', e));
+  restoreWorkspace();
 
   // test hook (used by tools/ui_check.py); harmless in normal use
   LP.app = Object.assign(app, { loadBuffer: (name, buf) => { addParsed(name, buf); if (!st.series.length) applyPreset('cycling', true); else app.changed({ panels: true, files: true }); }, render, toastMsg: toast });
