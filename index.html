@@ -320,7 +320,7 @@ table.kv td { text-align: left; }
 .lib-into{color:#666;font-size:12px}
 .lib-search{width:260px;padding:5px 9px;border:1px solid #d6d6d6;border-radius:6px;font-size:12.5px}
 .lib-deep{display:flex;align-items:center;gap:4px;color:#555;font-size:12px}
-.lib-body{flex:1;display:grid;grid-template-columns:215px 1fr 310px;min-height:0}
+.lib-body{flex:1;display:grid;grid-template-columns:205px 1fr 372px;min-height:0}
 .lib-tree{border-right:1px solid #ececec;overflow:auto;padding:6px 0}
 .lib-tree-row{display:flex;align-items:center;gap:6px;padding:5px 10px;cursor:pointer;border-radius:5px;margin:0 6px}
 .lib-tree-row:hover{background:#f1f1f1}
@@ -332,7 +332,7 @@ table.kv td { text-align: left; }
 .lib-mid{display:flex;flex-direction:column;min-width:0;min-height:0}
 .lib-selbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#eef4ff;border-bottom:1px solid #d9e4f7}
 .lib-list{flex:1;overflow:auto}
-.lib-thead,.lib-item{display:grid;grid-template-columns:28px 1fr 62px 58px 62px 62px 72px;align-items:center;gap:6px;padding:6px 12px}
+.lib-thead,.lib-item{display:grid;grid-template-columns:28px 1fr 92px 54px 54px 56px 58px 64px;align-items:center;gap:6px;padding:6px 12px}
 .lib-thead{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #e3e3e3;color:#666;font-size:12px;z-index:1}
 .lib-th{background:none;border:0;padding:0;text-align:center;color:#666;font:inherit;cursor:pointer}
 .lib-th.on{color:#1f3b73;font-weight:700}
@@ -344,7 +344,7 @@ table.kv td { text-align: left; }
 .li-sub{color:#777;font-size:11.5px;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
 .li-num{text-align:center;font-variant-numeric:tabular-nums}
 .li-stars{text-align:center;color:#e0a500;letter-spacing:-1px}
-.chip{background:#eee;border-radius:9px;padding:1px 7px;font-size:11px;color:#555}
+.chip{background:#eee;border:1px solid transparent;border-radius:9px;padding:0 7px;font-size:11px;color:#555}
 .chip.tag{background:#e3f0e6;color:#2e6b3e}
 .lib-side{border-left:1px solid #ececec;overflow:auto;padding:12px}
 .lib-empty{padding:28px;color:#999;text-align:center}
@@ -385,6 +385,29 @@ table.kv td { text-align: left; }
 .lib-mini-hint{color:var(--muted);font-size:11.5px;padding:6px 2px;line-height:1.6}
 .lib-mini-foot{display:flex;align-items:center;gap:5px;font-size:11px}
 .head-actions{display:flex;align-items:center;gap:5px}
+
+/* 库：开始日期、分类标签、预览图 */
+.li-date{font-size:11.5px;color:#555;font-variant-numeric:tabular-nums;white-space:nowrap}
+.li-formula{color:#666}
+.li-sub .chip.ch{background:#eef2f8;color:#355;border-color:#d7e0ec;font-variant-numeric:tabular-nums}
+.li-sub .chip.folder{background:#eef7f0;color:#1f6b42;border-color:#cfe6d8}
+.li-sub .chip.nofolder{background:#fdf1e7;color:#9a5212;border-color:#f0d8c2}
+.lib-ident{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:11.5px}
+.lib-ident .chip.ch{background:#eef2f8;color:#355;border-color:#d7e0ec}
+.lib-ident .chip.folder{background:#eef7f0;color:#1f6b42;border-color:#cfe6d8}
+.lib-ident .chip.nofolder{background:#fdf1e7;color:#9a5212;border-color:#f0d8c2}
+.lib-when{color:#666;font-variant-numeric:tabular-nums}
+.lib-preview{border:1px solid #e6e6e6;border-radius:8px;background:#fff;overflow:hidden}
+.lib-pv-head{display:flex;align-items:center;gap:5px;padding:6px 7px;border-bottom:1px solid #f0f0f0;background:#fafafa}
+.lib-pv-head .spacer{flex:1}
+.lib-pv-note{font-size:11px;color:#777;white-space:nowrap}
+.lib-pv-plot{height:250px}
+.btn.small.on{background:#691f50;border-color:#691f50;color:#fff}
+
+/* 左栏固定的快速作图 */
+.panel.pin{position:sticky;top:0;z-index:4;background:var(--panel);box-shadow:0 1px 0 var(--line)}
+.li-num.partial{color:#9a5212}
+.li-num.partial::after{content:'·';margin-left:2px}
 
 </style>
 </head>
@@ -445,6 +468,10 @@ table.kv td { text-align: left; }
 
   <main class="layout">
     <aside class="side left" id="leftPanel">
+      <section class="panel pin">
+        <div class="panel-head"><h2>快速作图</h2></div>
+        <div id="presetList" class="preset-list"></div>
+      </section>
       <section class="panel lib-mini" id="libMini">
         <div class="panel-head" id="libMiniHead">
           <h2><span class="caret" id="libMiniCaret">▸</span> 电池库</h2>
@@ -461,10 +488,6 @@ table.kv td { text-align: left; }
         </div>
         <div id="fileList" class="file-list"></div>
         <div class="dropzone" id="dropzone">把 .cex 文件或整个文件夹拖到这里，或点击选择<br><span class="muted">勾选要作图的文件 · 数据仅在本机浏览器中解析，不会上传</span></div>
-      </section>
-      <section class="panel">
-        <div class="panel-head"><h2>快速作图</h2></div>
-        <div id="presetList" class="preset-list"></div>
       </section>
       <section class="panel grow">
         <div class="panel-head">
@@ -3342,7 +3365,19 @@ table.kv td { text-align: left; }
       acc[k][0] += Math.abs(p.current_mA[j]); acc[k][1]++;
     }
     const rate = (c) => (acc[c] ? acc[c][0] / acc[c][1] / mg / 250 : 0);
-    const hi = rows.filter((r) => rate(r.cycle) >= 0.5);
+    // A file exported while the cell is still running ends with a discharge that
+    // never reached the lower cut-off. That half cycle is not a data point.
+    let partialLast = false;
+    if (rows.length >= 3) {
+      const last = rows[rows.length - 1];
+      const ends = rows.slice(0, -1).map((r) => r.dis_vend).filter(Number.isFinite).sort((a, b) => a - b);
+      if (ends.length && Number.isFinite(last.dis_vend)) {
+        const med = ends[Math.floor(ends.length / 2)];
+        if (last.dis_vend > med + 0.25) partialLast = true;
+      }
+    }
+    const use = partialLast ? rows.slice(0, -1) : rows;
+    const hi = use.filter((r) => rate(r.cycle) >= 0.5);
     const r1 = rows[0];
     const num = (x, k = 1) => (Number.isFinite(x) ? +x.toFixed(k) : null);
     let peak = null, peakAt = null, life80 = null;
@@ -3354,7 +3389,9 @@ table.kv td { text-align: left; }
       life80 = idx < 0 ? null : idx - bi;
     }
     return {
-      cycles: rows.length,
+      cycles: use.length,
+      rawCycles: rows.length,
+      partialLast,
       hiCycles: hi.length,
       c1_ch: num(r1.ch_spcap), c1_dis: num(r1.dis_spcap), ice: num(r1.ce),
       chEndV: num(r1.ch_vend, 3), chTimeH: num(r1.ch_time / 3600, 2),
@@ -3779,6 +3816,34 @@ table.kv td { text-align: left; }
   // ------------------------------------------------------------------ render
   function setBusy(msg) { const b = el('libBusy'); if (b) b.textContent = msg || ''; }
 
+  /** earliest test start (unix seconds) over all files of an item */
+  function startOf(item) {
+    let t = 0;
+    for (const f of L().filesOf(lib.ix, item.id)) {
+      const v = f.fp && f.fp.t0 ? f.fp.t0 : 0;
+      if (v > 1e9 && (!t || v < t)) t = v;
+    }
+    return t;
+  }
+  const pad = (n) => String(n).padStart(2, '0');
+  function fmtStart(t, withYear) {
+    if (!t) return '—';
+    const d = new Date(t * 1000);
+    const head = withYear ? `${d.getFullYear()}-` : '';
+    return `${head}${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  /** where this battery sits: category path, or 未分类 for the root */
+  function folderLabel(item) {
+    if (!item.folder || item.folder === 'root') return null;
+    const parts = L().folderPath(lib.ix, item.folder).slice(1);
+    return parts.length ? parts.join(' / ') : null;
+  }
+  function channelOfItem(item) {
+    if (item.meta && item.meta.channel) return item.meta.channel;
+    const f = L().filesOf(lib.ix, item.id).find((x) => x.fp && x.fp.channel);
+    return f ? f.fp.channel : null;
+  }
+
   function statOf(item) {
     const fs = L().filesOf(lib.ix, item.id).filter((f) => f.stats);
     if (!fs.length) return null;
@@ -3796,9 +3861,13 @@ table.kv td { text-align: left; }
       });
     }
     const key = lib.sel.sort;
+    const sortVal = (x) => (key === 'title' ? x.title
+      : key === 'rating' ? (x.rating || 0)
+      : key === 'cycles' ? ((statOf(x) || {}).cycles || 0)
+      : key === 'start' ? startOf(x)
+      : x.addedAt);
     list.sort((a, b) => {
-      const av = key === 'title' ? a.title : key === 'rating' ? (a.rating || 0) : key === 'cycles' ? ((statOf(a) || {}).cycles || 0) : a.addedAt;
-      const bv = key === 'title' ? b.title : key === 'rating' ? (b.rating || 0) : key === 'cycles' ? ((statOf(b) || {}).cycles || 0) : b.addedAt;
+      const av = sortVal(a), bv = sortVal(b);
       const r = typeof av === 'string' ? av.localeCompare(bv, 'zh-CN', { numeric: true }) : (av - bv);
       return lib.sel.desc ? -r : r;
     });
@@ -3830,6 +3899,126 @@ table.kv td { text-align: left; }
     return [node, ...kids.flatMap((c) => treeNode(c.id, depth + 1))];
   }
 
+  // ------------------------------------------------------------- preview plot
+  // A small chart beside the details, so a battery can be judged without
+  // loading it into the plotting area first.
+  const PV = { mode: 'curve', cache: new Map(), token: 0 };
+  const PV_BLUE = '#2a6fd6', PV_RED = '#d03b3b';
+
+  function ramp(t) {               // pale pink → deep red, same feel as the figures
+    const a = [247, 198, 198], b = [226, 99, 95], c = [168, 23, 27];
+    const [x, y, k] = t < 0.5 ? [a, b, t * 2] : [b, c, (t - 0.5) * 2];
+    return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * k)).join(',')})`;
+  }
+
+  /** read + parse the richest file of an item (cached) */
+  async function previewFile(item) {
+    const files = L().filesOf(lib.ix, item.id).filter((f) => !f.missing);
+    if (!files.length) return null;
+    const f = files.reduce((a, b) => (((b.stats || {}).cycles || 0) > ((a.stats || {}).cycles || 0) ? b : a));
+    const key = `${item.id}|${f.id}`;
+    if (PV.cache.has(key)) return PV.cache.get(key);
+    const parsed = LP.cex.parseCex(await lib.store.readFile(f.path));
+    const massMg = Number(item.meta.massMg) || (f.stats && f.stats.massMg) || parsed.meta.massG * 1000;
+    const v = { f, parsed, massMg, stats: L().summarize(parsed, massMg) };
+    PV.cache.set(key, v);
+    if (PV.cache.size > 4) PV.cache.delete(PV.cache.keys().next().value);
+    return v;
+  }
+
+  function previewTraces(v, mode) {
+    const file = { data: v.parsed, massMg: v.massMg, retentionBase: 'land' };
+    const partial = !!(v.stats && v.stats.partialLast);
+    const tail = partial ? '，最后 1 圈未放完已排除' : '';
+    if (mode === 'cycle') {
+      const all = LP.an.cycleTable(file);
+      const rows = partial ? all.slice(0, -1) : all;
+      const top = Math.max(60, ...rows.map((r) => r.dis_spcap).filter(Number.isFinite)) * 1.25;
+      return {
+        traces: [
+          { x: rows.map((r) => r.cycle), y: rows.map((r) => r.dis_spcap), mode: 'markers', type: 'scattergl',
+            marker: { size: rows.length > 150 ? 3 : 5, color: PV_BLUE }, hovertemplate: '%{x} 圈<br>%{y:.1f} mAh g⁻¹<extra></extra>' },
+          { x: rows.map((r) => r.cycle), y: rows.map((r) => Math.min(105, r.ce)), mode: 'markers', type: 'scattergl', yaxis: 'y2',
+            marker: { size: rows.length > 150 ? 3 : 4.5, color: 'rgba(0,0,0,0)', line: { color: PV_RED, width: 1 } },
+            hovertemplate: '%{x} 圈<br>CE %{y:.2f}%<extra></extra>' },
+        ],
+        note: `${rows.length} 圈${tail}`,
+        top,
+      };
+    }
+    const nC = v.parsed.cycles.length - (partial ? 1 : 0);
+    const MAX = 24;
+    const pick = nC <= MAX ? Array.from({ length: nC }, (_, i) => i + 1)
+      : Array.from({ length: MAX }, (_, i) => Math.round(1 + (i * (nC - 1)) / (MAX - 1)));
+    const traces = [];
+    pick.forEach((cy, i) => {
+      const col = cy === 1 ? '#111111' : ramp(pick.length < 2 ? 1 : i / (pick.length - 1));
+      for (const dir of [1, -1]) {
+        const idx = LP.an.halfCycleIndices(file, cy, dir);
+        if (!idx.length) continue;
+        const step = Math.max(1, Math.floor(idx.length / 300));
+        const x = [], y = [];
+        for (let j = 0; j < idx.length; j += step) { x.push(LP.an.curveValue(file, 'spcap', idx[j])); y.push(LP.an.curveValue(file, 'voltage', idx[j])); }
+        const last = idx[idx.length - 1];
+        x.push(LP.an.curveValue(file, 'spcap', last)); y.push(LP.an.curveValue(file, 'voltage', last));
+        traces.push({ x, y, mode: 'lines', type: 'scattergl', line: { color: col, width: cy === 1 ? 1.8 : 1 },
+          name: `${cy}`, hovertemplate: `第 ${cy} 圈<br>%{x:.1f} mAh g⁻¹<br>%{y:.3f} V<extra></extra>` });
+      }
+    });
+    return { traces, note: (nC <= MAX ? `全部 ${nC} 圈` : `等间隔显示 ${pick.length} / ${nC} 圈`) + tail };
+  }
+
+  function previewLayout(mode, top) {
+    const ax = { showline: true, linecolor: '#333', linewidth: 1, mirror: mode !== 'cycle', ticks: 'inside',
+      tickfont: { size: 10 }, titlefont: { size: 11 }, zeroline: false, automargin: true };
+    const lay = {
+      margin: { l: 46, r: mode === 'cycle' ? 44 : 10, t: 8, b: 36 },
+      height: 250, showlegend: false, paper_bgcolor: '#fff', plot_bgcolor: '#fff',
+      font: { family: 'system-ui, sans-serif' }, hovermode: 'closest',
+      xaxis: Object.assign({ title: mode === 'cycle' ? '圈数' : '比容量 (mAh g⁻¹)' }, ax),
+      yaxis: Object.assign({ title: mode === 'cycle' ? '比容量' : '电压 (V)' }, ax),
+    };
+    if (mode === 'cycle') {
+      lay.yaxis.color = PV_BLUE;
+      lay.yaxis.range = [0, top || 350];
+      lay.yaxis2 = Object.assign({ title: 'CE (%)', overlaying: 'y', side: 'right', range: [0, 105], color: PV_RED }, ax, { mirror: false });
+    }
+    return lay;
+  }
+
+  async function drawPreview(item) {
+    const box = el('libPvPlot');
+    const tip = el('libPvNote');
+    if (!box || !item) return;
+    const my = ++PV.token;
+    if (tip) tip.textContent = '正在读取…';
+    try {
+      const v = await previewFile(item);
+      if (my !== PV.token || !el('libPvPlot')) return;
+      if (!v) { box.innerHTML = '<div class="lib-empty">这只电池没有可读的文件</div>'; if (tip) tip.textContent = ''; return; }
+      const { traces, note, top } = previewTraces(v, PV.mode);
+      Plotly.react(box, traces, previewLayout(PV.mode, top), { displayModeBar: false, responsive: true });
+      if (tip) tip.textContent = note;
+    } catch (e) {
+      if (my !== PV.token) return;
+      box.innerHTML = `<div class="lib-empty">读取失败：${e && e.message ? e.message : e}</div>`;
+      if (tip) tip.textContent = '';
+    }
+  }
+
+  function previewBox(item) {
+    const seg = (key, label) => h('button', {
+      class: 'btn small' + (PV.mode === key ? ' on' : ' ghost'),
+      onclick: () => { PV.mode = key; renderList(); },
+    }, label);
+    return h('div', { class: 'lib-preview' },
+      h('div', { class: 'lib-pv-head' },
+        seg('curve', '充放电曲线'), seg('cycle', '循环容量'),
+        h('span', { class: 'spacer' }),
+        h('span', { class: 'lib-pv-note', id: 'libPvNote' })),
+      h('div', { class: 'lib-pv-plot', id: 'libPvPlot' }));
+  }
+
   function detail(item) {
     if (!item) return h('div', { class: 'lib-empty' }, '选中一只电池查看详情');
     const files = L().filesOf(lib.ix, item.id);
@@ -3837,7 +4026,15 @@ table.kv td { text-align: left; }
     const field = (label, value, onInput, ph) => h('div', { class: 'lib-field' },
       h('label', null, label),
       h('input', { type: 'text', value: value || '', placeholder: ph || '', oninput: (e) => { onInput(e.target.value); saveSoon(); } }));
+    const t0 = startOf(item);
+    const ch = channelOfItem(item);
+    const fl = folderLabel(item);
     return h('div', { class: 'lib-detail' },
+      previewBox(item),
+      h('div', { class: 'lib-ident' },
+        h('span', { class: 'chip ch' }, ch || '通道未知'),
+        h('span', { class: 'chip ' + (fl ? 'folder' : 'nofolder') }, fl || '未分类'),
+        h('span', { class: 'lib-when' }, t0 ? `开始测试 ${fmtStart(t0, true)}` : '文件里没有时间戳')),
       h('input', {
         class: 'lib-title', type: 'text', value: item.title,
         oninput: (e) => { item.title = e.target.value; saveSoon(); const r = document.querySelector(`[data-item="${item.id}"] .li-title`); if (r) r.textContent = e.target.value; },
@@ -3858,6 +4055,7 @@ table.kv td { text-align: left; }
         h('div', null, 'ICE ', h('b', null, st.ice ?? '—'), '%'),
         h('div', null, '峰值 ', h('b', null, st.peak ?? '—'), st.peakAt ? ` @${st.peakAt}` : ''),
         h('div', null, '到 80% ', h('b', null, st.life80 ?? '—'), ' 圈'),
+        st.partialLast ? h('div', { class: 'warn' }, '最后 1 圈未放完，已排除') : null,
         st.timeCut ? h('div', { class: 'warn' }, '首充被计时截断') : null) : null,
       h('div', { class: 'lib-files' },
         h('h5', null, `文件（${files.length}）`),
@@ -3896,6 +4094,9 @@ table.kv td { text-align: left; }
     const st = statOf(item);
     const nf = L().filesOf(lib.ix, item.id).length;
     const on = lib.checked.has(item.id);
+    const t0 = startOf(item);
+    const fl = folderLabel(item);
+    const ch = channelOfItem(item);
     return h('div', {
       class: 'lib-item' + (lib.sel.item === item.id ? ' sel' : ''), 'data-item': item.id, draggable: true,
       ondragstart: (e) => {
@@ -3909,10 +4110,16 @@ table.kv td { text-align: left; }
       h('div', { class: 'li-main' },
         h('div', { class: 'li-title' }, item.title),
         h('div', { class: 'li-sub' },
-          item.meta.formula || '—',
+          ch ? h('span', { class: 'chip ch' }, ch) : null,
+          h('span', { class: 'chip ' + (fl ? 'folder' : 'nofolder'), title: fl ? '所在分类' : '还没有放进任何分类' }, fl || '未分类'),
+          item.meta.formula ? h('span', { class: 'li-formula' }, item.meta.formula) : null,
           nf > 1 ? h('span', { class: 'chip' }, `${nf} 个文件`) : null,
           ...(item.tags || []).map((t) => h('span', { class: 'chip tag' }, t)))),
-      h('div', { class: 'li-num' }, st ? st.cycles : '—'),
+      h('div', { class: 'li-date', title: t0 ? new Date(t0 * 1000).toLocaleString('zh-CN') : '文件里没有时间戳' }, fmtStart(t0)),
+      h('div', {
+        class: 'li-num' + (st && st.partialLast ? ' partial' : ''),
+        title: st && st.partialLast ? `共 ${st.rawCycles} 圈，最后 1 圈还没放完，已不计入统计` : '',
+      }, st ? st.cycles : '—'),
       h('div', { class: 'li-num' }, st && st.ice != null ? st.ice : '—'),
       h('div', { class: 'li-num' }, st && st.peak != null ? st.peak : '—'),
       h('div', { class: 'li-num' }, st && st.life80 != null ? st.life80 : '—'),
@@ -4007,13 +4214,18 @@ table.kv td { text-align: left; }
     wrap.innerHTML = '';
     wrap.append(h('div', { class: 'lib-thead' },
       h('span', null, ''), sortBtn('title', '电池'),
+      sortBtn('start', '开始测试'),
       sortBtn('cycles', '圈数'), h('span', { class: 'lib-th' }, 'ICE'),
       h('span', { class: 'lib-th' }, '峰值'), h('span', { class: 'lib-th' }, '到80%'),
       sortBtn('rating', '评分')));
     if (!list.length) wrap.append(h('div', { class: 'lib-empty' }, lib.ix.items.length ? '这个分类下没有电池' : '库是空的，点左上角「导入 .cex」开始'));
     for (const it of list) wrap.append(itemRow(it));
     const side = el('libSide');
-    if (side) { side.innerHTML = ''; side.append(detail(lib.ix.items.find((i) => i.id === lib.sel.item))); }
+    if (side) {
+      const it = lib.ix.items.find((i) => i.id === lib.sel.item);
+      side.innerHTML = ''; side.append(detail(it));
+      if (it) drawPreview(it);
+    }
   }
 
   // ------------------------------------------------- compact panel (sidebar)
@@ -4068,17 +4280,19 @@ table.kv td { text-align: left; }
     for (const it of list) {
       const st = statOf(it);
       const on = mini.checked.has(it.id);
+      const t0 = startOf(it);
       wrap.append(h('div', { class: 'lib-mini-row' + (on ? ' on' : '') },
         h('input', {
           type: 'checkbox', checked: on,
           onchange: (e) => { e.target.checked ? mini.checked.add(it.id) : mini.checked.delete(it.id); renderMini(); },
         }),
         h('span', {
-          class: 'lib-mini-name', title: `${it.title}${st ? ` · ${st.cycles} 圈` : ''}（双击直接作图）`,
+          class: 'lib-mini-name',
+          title: `${it.title}\n${channelOfItem(it) || '通道未知'} · ${t0 ? fmtStart(t0, true) : '无时间戳'}${st ? ` · ${st.cycles} 圈` : ''}（双击直接作图）`,
           onclick: () => { e_toggle(it.id); },
           ondblclick: () => loadToWorkspace([it.id], false),
         }, it.title),
-        h('span', { class: 'lib-mini-n' }, st ? `${st.cycles} 圈` : '—')));
+        h('span', { class: 'lib-mini-n' }, t0 ? fmtStart(t0) : (st ? `${st.cycles} 圈` : '—'))));
     }
     box.append(wrap);
 
