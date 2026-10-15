@@ -5,20 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LandPlot · 蓝电数据绘图</title>
   <meta name="description" content="在浏览器中直接读取蓝电 LAND .cex 文件并绘制循环、库伦效率、充放电曲线与 dQ/dV 图。数据只在本地处理。">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f3b73'/%3E%3Cpath d='M7 23 L12 15 L17 18 L25 8' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAYFBMVEUAAAAjmtj5+vsZGhpKs68lS51Yrttsa2tMTU6fn52a0d5jwrxUbqnP5OlydXaGiY202exvtLSSpMqoqKuls9N0d7J///+Kxt4Vam8rX1ulpfKq//9/f/8Af/9lsv8vdLln4yZoAAAAIHRSTlMA/hH7/P72ruNVpPn1UgSTaAOZDG8EAssE/QMDAgIDA2llcIMAAALuSURBVHjarZeJlqowDIZDgAIdCmVxGXB5/7e86YLSQkGc+585ZxTJZ5oVAXwh/bVQt6hfHheSeZmSSkLgV/aQWrV4O044QTvZp2UPzVH7G2CZvgnHD3GCPp0DsPsbQMLwJ0Ca4NEodE4MNOF0MAyYpB7BInB8PJ6P3ZicPRcol2T+PN2G9x17BGkJpf2f9MYDwTmX9HLYL4W2JLWIbWIYZd2jYCwiMb4fV/oc0UbO9gW5oc01QmyfoiKddEarU/NGRG8xhM/LC58AfenYRxFsVDh9VMxEb+lWiqoDoEOMYfs8nqmGCqgdBHMAEYdnGDC3j3N98YoeAOAasMeOALU9hcjjDCtU8gAslADFiONiek8A69biCGEPBHlQvDzIsaAoIo98QLP6/bUTwFcchG/PVtPYQRGvK4kWDpxDCZyXgAmlSMC3v+AdAwnMpjdCSqFuQgmmhdhliiO74GovqGOprFU0k7hqPMY4Nw1IHShRX1WSgTqePKDEczdpKdWjzZEQGFx4E6ABz/6iLlfk9sPcOCBsAryiofnxCg3iOOJWG6o7ryCZaz+L7d5SNQCnariTnC8ALRwHOEegDX8Q4AZRPyO8AOexGYe9IFIaZy7ocazTSPvmbm587KQRm1chMTPQ43hW4PuFpD6Wtmh7KDUgZz1NJVvKfKeUK7eZ+qQkD2g3vRcLNdMNdrrRbii9X4QGpE47w0Y7d3WWZxktBDMhB3WZAOAOlFsQMK2FvDbR0pf9zUSLZdgA/JIUojBDQnnQs/2hOgEg0QK9llQbq8vLxXIPAn4Sq19DqNYBsA9QhAzhew80IS9UM60s1088MIHQi8FfjWvrfQ2gnSCli8VwDSyWBUBpAWAY3ExhAGNs234bAFyguNh1E+7GIKA2Fii5lFvzIAyAasSp+u8I8J0H2DXQNFszccODz6by/wL8zJX8HAVwX5dDgLVZdwSQw/cAUkbtmy2kHr0+erzvvOfst+jJ6cOf3SJfU739+/cfmgUpuOyH5oQAAAAASUVORK5CYII=">
   <style>
 :root {
-  --bg: #eef0f3;
+  --bg: #f0ecf2;
   --panel: #ffffff;
-  --panel-2: #f7f8fa;
-  --line: #e2e5ea;
-  --line-2: #d3d8df;
-  --text: #1c2330;
-  --text-2: #4a5263;
-  --muted: #8a92a1;
-  --accent: #1f3b73;
-  --accent-2: #2f5199;
-  --accent-soft: #e8edf7;
+  --panel-2: #faf7fb;
+  --line: #e4dfe8;
+  --line-2: #d5ccda;
+  --text: #241b28;
+  --text-2: #554c5a;
+  --muted: #8d8694;
+  --accent: #660874;
+  --accent-2: #922e8e;
+  --accent-soft: #f4ebf6;
+  --accent-line: #ddc8e2;
   --danger: #b4332a;
   --warn-bg: #fff6e5;
   --warn: #8a5a00;
@@ -92,7 +93,7 @@ select, input[type=text], input[type=number] {
   background: #fff; padding: 0 8px; min-width: 0;
 }
 select { padding-right: 4px; }
-input:focus, select:focus, .rich:focus { outline: 2px solid rgba(47, 81, 153, .25); outline-offset: 0; border-color: var(--accent-2); }
+input:focus, select:focus, .rich:focus { outline: 2px solid rgba(102, 8, 116, .25); outline-offset: 0; border-color: var(--accent-2); }
 input[type=number] { padding-right: 2px; }
 
 /* ---------- layout ---------- */
@@ -133,7 +134,7 @@ body.resizing, body.resizing * { cursor: col-resize !important; user-select: non
 .dropzone:hover, body.dragging .dropzone { border-color: var(--accent-2); background: var(--accent-soft); }
 body.dragging::after {
   content: '松开以载入文件'; position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
-  background: rgba(31, 59, 115, .08); color: var(--accent); font-size: 18px; font-weight: 600;
+  background: rgba(102, 8, 116, .07); color: var(--accent); font-size: 18px; font-weight: 600;
   border: 3px dashed var(--accent-2); pointer-events: none;
 }
 
@@ -147,7 +148,7 @@ body.dragging::after {
   cursor: pointer; border: 1px solid transparent;
 }
 .series-row:hover { background: var(--panel-2); }
-.series-row.sel { background: var(--accent-soft); border-color: #cdd7ea; }
+.series-row.sel { background: var(--accent-soft); border-color: var(--accent-line); }
 .series-row .eye { border: 0; background: transparent; cursor: pointer; padding: 0; width: 18px; color: var(--text-2); font-size: 13px; }
 .series-row.hidden .s-label { opacity: .45; }
 .swatch { width: 22px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0, 0, 0, .12); }
@@ -324,21 +325,21 @@ table.kv td { text-align: left; }
 .lib-tree{border-right:1px solid #ececec;overflow:auto;padding:6px 0}
 .lib-tree-row{display:flex;align-items:center;gap:6px;padding:5px 10px;cursor:pointer;border-radius:5px;margin:0 6px}
 .lib-tree-row:hover{background:#f1f1f1}
-.lib-tree-row.on{background:#e6eefb;font-weight:600}
+.lib-tree-row.on{background:var(--accent-soft);font-weight:600;color:var(--accent)}
 .lib-tree-row.drop{outline:2px dashed #2a78d6;outline-offset:-2px}
 .lib-tree-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lib-tree-n{color:#999;font-size:11.5px}
 .lib-tree-btns{display:flex;flex-wrap:wrap;gap:4px;padding:10px}
 .lib-mid{display:flex;flex-direction:column;min-width:0;min-height:0}
-.lib-selbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#eef4ff;border-bottom:1px solid #d9e4f7}
+.lib-selbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--accent-soft);border-bottom:1px solid var(--accent-line)}
 .lib-list{flex:1;overflow:auto}
 .lib-thead,.lib-item{display:grid;grid-template-columns:28px 1fr 92px 54px 54px 56px 58px 64px;align-items:center;gap:6px;padding:6px 12px}
 .lib-thead{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #e3e3e3;color:#666;font-size:12px;z-index:1}
 .lib-th{background:none;border:0;padding:0;text-align:center;color:#666;font:inherit;cursor:pointer}
-.lib-th.on{color:#1f3b73;font-weight:700}
+.lib-th.on{color:var(--accent);font-weight:700}
 .lib-item{border-bottom:1px solid #f0f0f0;cursor:pointer}
-.lib-item:hover{background:#f7f9fc}
-.lib-item.sel{background:#e6eefb}
+.lib-item:hover{background:#faf6fb}
+.lib-item.sel{background:var(--accent-soft)}
 .li-main{min-width:0}
 .li-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .li-sub{color:#777;font-size:11.5px;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
@@ -378,8 +379,8 @@ table.kv td { text-align: left; }
 .lib-mini-list{max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
 .lib-mini-row{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:5px;padding:3px 6px;font-size:11.5px;border-bottom:1px solid #f1f1ef}
 .lib-mini-row:last-child{border-bottom:0}
-.lib-mini-row.on{background:#f3f0fa}
-.lib-mini-row:hover{background:#f7f7f5}
+.lib-mini-row.on{background:var(--accent-soft)}
+.lib-mini-row:hover{background:#faf6fb}
 .lib-mini-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .lib-mini-n{color:var(--muted);font-size:10.5px;white-space:nowrap}
 .lib-mini-hint{color:var(--muted);font-size:11.5px;padding:6px 2px;line-height:1.6}
@@ -402,19 +403,51 @@ table.kv td { text-align: left; }
 .lib-pv-head .spacer{flex:1}
 .lib-pv-note{font-size:11px;color:#777;white-space:nowrap}
 .lib-pv-plot{height:250px}
-.btn.small.on{background:#691f50;border-color:#691f50;color:#fff}
+.btn.small.on{background:var(--accent);border-color:var(--accent);color:#fff}
 
 /* 左栏固定的快速作图 */
 .panel.pin{position:sticky;top:0;z-index:4;background:var(--panel);box-shadow:0 1px 0 var(--line)}
 .li-num.partial{color:#9a5212}
 .li-num.partial::after{content:'·';margin-left:2px}
 
+
+/* ---------- 标志（清华校徽 / 课题组 / 紫荆轮） ---------- */
+:root{
+  --logo-seal:url(data:image/png;base64,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);
+  --logo-group:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAYFBMVEUAAAAjmtj5+vsZGhpKs68lS51Yrttsa2tMTU6fn52a0d5jwrxUbqnP5OlydXaGiY202exvtLSSpMqoqKuls9N0d7J///+Kxt4Vam8rX1ulpfKq//9/f/8Af/9lsv8vdLln4yZoAAAAIHRSTlMA/hH7/P72ruNVpPn1UgSTaAOZDG8EAssE/QMDAgIDA2llcIMAAALuSURBVHjarZeJlqowDIZDgAIdCmVxGXB5/7e86YLSQkGc+585ZxTJZ5oVAXwh/bVQt6hfHheSeZmSSkLgV/aQWrV4O044QTvZp2UPzVH7G2CZvgnHD3GCPp0DsPsbQMLwJ0Ca4NEodE4MNOF0MAyYpB7BInB8PJ6P3ZicPRcol2T+PN2G9x17BGkJpf2f9MYDwTmX9HLYL4W2JLWIbWIYZd2jYCwiMb4fV/oc0UbO9gW5oc01QmyfoiKddEarU/NGRG8xhM/LC58AfenYRxFsVDh9VMxEb+lWiqoDoEOMYfs8nqmGCqgdBHMAEYdnGDC3j3N98YoeAOAasMeOALU9hcjjDCtU8gAslADFiONiek8A69biCGEPBHlQvDzIsaAoIo98QLP6/bUTwFcchG/PVtPYQRGvK4kWDpxDCZyXgAmlSMC3v+AdAwnMpjdCSqFuQgmmhdhliiO74GovqGOprFU0k7hqPMY4Nw1IHShRX1WSgTqePKDEczdpKdWjzZEQGFx4E6ABz/6iLlfk9sPcOCBsAryiofnxCg3iOOJWG6o7ryCZaz+L7d5SNQCnariTnC8ALRwHOEegDX8Q4AZRPyO8AOexGYe9IFIaZy7ocazTSPvmbm587KQRm1chMTPQ43hW4PuFpD6Wtmh7KDUgZz1NJVvKfKeUK7eZ+qQkD2g3vRcLNdMNdrrRbii9X4QGpE47w0Y7d3WWZxktBDMhB3WZAOAOlFsQMK2FvDbR0pf9zUSLZdgA/JIUojBDQnnQs/2hOgEg0QK9llQbq8vLxXIPAn4Sq19DqNYBsA9QhAzhew80IS9UM60s1088MIHQi8FfjWvrfQ2gnSCli8VwDSyWBUBpAWAY3ExhAGNs234bAFyguNh1E+7GIKA2Fii5lFvzIAyAasSp+u8I8J0H2DXQNFszccODz6by/wL8zJX8HAVwX5dDgLVZdwSQw/cAUkbtmy2kHr0+erzvvOfst+jJ6cOf3SJfU739+/cfmgUpuOyH5oQAAAAASUVORK5CYII=);
+  --logo-pin:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAGFBMVEUAAACVMJGZSJb09PShXJ6obaa4lbbKrcj/Gt67AAAACHRSTlMA/eELn2YtJK3WCNAAAAVRSURBVHjadZXfcxvVFcc/d+/K61DZ2pXU2g52JNmxU0hir01sOjFurPwAAgkJLeEBpsSkTvvSmXqGGf6LzpQ+9IEZBmZ4ohDgoUxpZxKLliYYcLTgJBgcx3LsqUUsWVeY1Bs7q+2DJJs64/Nyd86e/ew9595zvrBhkpclGJKtzA50QG/rya3eS5JxAonoZm/14fcrucJP5wYyP87L4dbt9dmKX6viu5RzHPO0Q1PNgXfOz64TqgFOyCRFwyhC9acRP3KwN/2iGNcU7gLSnITwV5D9f0IPKgYDIGMg6l4+VbOJkK1tS7uiqAhuyxJ+4NyNGv3nk+sEY4RBlMIH2jIwnwbyV+x1gqiZ8907hitMxfUS8jZANOisEzrnpELZoCG6IHgAiE45G3vIllZrkCVFuCBmDZ6/5CLvf9zPrhNOaoA3AQIN5CsKceK+976XG2n6T4P/EuxGlAj9Crpfd/x86JfVAMW4DWM2y6aAlgzyfAzwPxoCrbyL4kcwlyCPZQuV4RFNAXgpG0nAI5H1nyi4a2OG271gLM+V9MtxF0Skvzmf1fHap0wY/8XrXteSZoLm0x9+DyIn/nAdkGilla9rWb3tuZ1j+qX6++7Gl78ouKLvcsPaC5+ABqGObvC3Pc2E9CWOnd7TrUQydWA0/4ENGh65XhOuvGIX/b1il2YmVYtI/nV/GnIR0CDuX4iAN/Cx5333XEFK/atU7/v7HYA0aGCSCy7Dld0v7kqbn95549Za6O8nygfhtyHhqMOtsx8bfttb/cb79iILv15qvly5Ju4uCZ8bMN98eCHz7NvbGxzflwN/0+9Edk/9bjnZVNgufvMqFhCd6q27YZbBnPln1zn6Yoi/GEfZd4ikZVlWu81I5RraIM8etCwrfBJEoC45m1dA5Ngf15vBeHIUAH0RKRom7bWY67Jy87uuajsduFRe/d9+Ikg6ojNllE7Cu16VcAp/aUYB4WlBzwxEer5xNvdyX/Mo6IuCQBDAarU2CMZTvrJK53pzSuzQKdkOUBgnsv7x6etpYGerlkjHBfTMABB9ciMLKVoUEL2535d29laDi4g88q/PTlcaVg7f/c8zCy6sDJ8rycb+q7efaDn4wdWz9enJSnI93xx+czgNcKMDEjtP1QwFnjlohYcqnTwkk1a7rVmW1QCCZDXBntRACqTH8N03EioSbB1FX7RBt8rWzpk2OQLS1tttzbLaSVhhGyl5OAsg5/ddfPSh8VP9bvR6yM81uf9tjBZEqFH6XZ8bgDwWyK+NFSdq3z7Cw90XV8443Ek0ZAc/lCx6q7VEDl/NKaso1kQhlpn6R03d+SaXxa+NxkkdD3GouKjnlDg+e9GHiVmza0kNWin8PVZ5PvjXoqELLqEPvw3t+NbV3UBnUyb3pQGh1dCkhLOtjVezwM8eyPRZ8x3q+20rfY7/aNEVoWu9CNBC5frdDooX39XqZ4v1shjEb50h5oAGwgYQ6hjanxSD/ojpvWCiSURlwnj/toHovhTaXrwM03Gm4/j1ZnXSytXRQ6Y08/BgrFL1aymYtjWnQoB3fhK7X8Euh7hCQakb5OwPZ/VYLAXyNUUkQ8akpEHLhNgIkNooEDoOugLwE2BqYVkNkCdCAPMO4ka5dksQ33PUq07anjYjC9HmLGKmlm0NGTqKaxcWPvMBHWB8XL40Ex4rgOzKoEBkuAseUC4GtgPsm4bwDofwDkdfTGrnf6g4DhiyDuRgBjEN9Yi996jmGcvaScCy4jIRHuHIZtWDmw8dCbIXMYiK/pnOLdQ3GT5EIDy0pXjT+hjobQZV1bwnQiIZstla/+91/Q9iV/AAiEOZgQAAAABJRU5ErkJggg==);
+}
+.logo{display:inline-block;background-repeat:no-repeat;background-position:center;background-size:contain;flex:none}
+.logo.seal{width:26px;height:26px;background-image:var(--logo-seal)}
+.logo.group{width:26px;height:26px;background-image:var(--logo-group)}
+.logo.pin{width:18px;height:18px;background-image:var(--logo-pin)}
+.brand{gap:7px}
+.brand .brand-name{letter-spacing:.2px}
+.tb-marks{display:flex;align-items:center;gap:8px;padding-right:4px;border-right:1px solid var(--line);margin-right:4px}
+.tb-marks .logo{opacity:.92}
+.lib-head .logo.pin{width:20px;height:20px;margin-right:2px}
+/* 忙碌时让紫荆轮转起来 */
+.lib-busy.spin::before{content:'';display:inline-block;width:14px;height:14px;margin-right:5px;vertical-align:-2px;
+  background:var(--logo-pin) center/contain no-repeat;animation:pinspin 1.6s linear infinite}
+@keyframes pinspin{to{transform:rotate(360deg)}}
+
+/* 折叠面板：作者样式里的 display 会盖掉 [hidden]，必须显式关掉 */
+.lib-mini-body[hidden],.lib-selbar[hidden],.lib-tree-kids[hidden]{display:none}
+
+/* 库分类树的折叠箭头 */
+.lib-tree-row{gap:3px}
+.tw{width:14px;height:16px;line-height:16px;text-align:center;font-size:9px;color:var(--muted);
+  background:none;border:0;padding:0;cursor:pointer;flex:none}
+.tw:hover{color:var(--accent)}
+.tw.leaf{visibility:hidden;cursor:default}
+.lib-tree-tools{display:flex;gap:4px;padding:2px 6px 6px}
+
 </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor"/><path d="M7 23 L12 15 L17 18 L25 8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="logo seal" title="清华大学" aria-hidden="true"></span>
       <span class="brand-name">LandPlot</span>
       <span class="brand-sub">蓝电数据绘图</span>
     </div>
@@ -462,6 +495,10 @@ table.kv td { text-align: left; }
           <button data-act="exportPlotCSV">当前图中数据 (CSV)</button>
         </div>
       </div>
+      <span class="tb-marks" aria-hidden="true">
+        <span class="logo group" title="Qiang's Group"></span>
+        <span class="logo pin" title="清华大学"></span>
+      </span>
       <button class="btn icon" id="btnHelp" title="使用说明">?</button>
     </div>
   </header>
@@ -3601,6 +3638,7 @@ table.kv td { text-align: left; }
     open: false,
     busy: false,
     checked: new Set(),
+    closed: new Set(),   // collapsed folders in the tree
   };
 
   const el = (id) => document.getElementById(id);
@@ -3814,7 +3852,12 @@ table.kv td { text-align: left; }
   }
 
   // ------------------------------------------------------------------ render
-  function setBusy(msg) { const b = el('libBusy'); if (b) b.textContent = msg || ''; }
+  function setBusy(msg) {
+    const b = el('libBusy');
+    if (!b) return;
+    b.textContent = msg || '';
+    b.classList.toggle('spin', !!msg);
+  }
 
   /** earliest test start (unix seconds) over all files of an item */
   function startOf(item) {
@@ -3894,10 +3937,24 @@ table.kv td { text-align: left; }
       },
       onclick: () => { lib.sel.folder = fid; lib.checked.clear(); render(); },
     },
+      h('button', {
+        class: 'tw' + (kids.length ? '' : ' leaf'),
+        title: kids.length ? (lib.closed.has(fid) ? '展开' : '折叠') : '',
+        onclick: (e) => {
+          e.stopPropagation();
+          if (!kids.length) return;
+          if (lib.closed.has(fid)) lib.closed.delete(fid); else lib.closed.add(fid);
+          render();
+        },
+      }, kids.length ? (lib.closed.has(fid) ? '\u25b8' : '\u25be') : '\u00b7'),
       h('span', { class: 'lib-tree-name' }, f ? f.name : '?'),
       h('span', { class: 'lib-tree-n' }, n || ''));
+    if (!kids.length || lib.closed.has(fid)) return [node];
     return [node, ...kids.flatMap((c) => treeNode(c.id, depth + 1))];
   }
+
+  /** every folder that has children */
+  function branchIds() { return lib.ix.folders.filter((f) => L().childFolders(lib.ix, f.id).length).map((f) => f.id); }
 
   // ------------------------------------------------------------- preview plot
   // A small chart beside the details, so a battery can be judged without
@@ -4150,6 +4207,7 @@ table.kv td { text-align: left; }
 
     const head = h('div', { class: 'lib-head' },
       h('div', { class: 'lib-where' },
+        h('span', { class: 'logo pin', 'aria-hidden': 'true' }),
         lib.store
           ? h('span', null, lib.store.kind === 'folder' ? `库文件夹：${lib.store.label}` : '库：浏览器内（本机）')
           : h('span', { class: 'warn' }, '还没有选择库的保存位置'),
@@ -4186,6 +4244,9 @@ table.kv td { text-align: left; }
       h('label', { class: 'lib-deep' }, h('input', { type: 'checkbox', checked: lib.sel.deep, onchange: (e) => { lib.sel.deep = e.target.checked; renderList(); } }), '含子分类'));
 
     const tree = h('div', { class: 'lib-tree' },
+      h('div', { class: 'lib-tree-tools' },
+        h('button', { class: 'btn small ghost', title: '折叠全部分类', onclick: () => { branchIds().forEach((id) => lib.closed.add(id)); render(); } }, '全部折叠'),
+        h('button', { class: 'btn small ghost', title: '展开全部分类', onclick: () => { lib.closed.clear(); render(); } }, '全部展开')),
       ...treeNode('root', 0),
       h('div', { class: 'lib-tree-btns' },
         h('button', { class: 'btn small ghost', onclick: () => { const n = prompt('新分类名称：'); if (n) { const f = L().addFolder(lib.ix, lib.sel.folder, n); lib.sel.folder = f.id; saveSoon(); render(); } } }, '＋ 子分类'),
