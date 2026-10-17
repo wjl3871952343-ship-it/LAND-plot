@@ -333,7 +333,7 @@ table.kv td { text-align: left; }
 .lib-mid{display:flex;flex-direction:column;min-width:0;min-height:0}
 .lib-selbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--accent-soft);border-bottom:1px solid var(--accent-line)}
 .lib-list{flex:1;overflow:auto}
-.lib-thead,.lib-item{display:grid;grid-template-columns:28px 1fr 92px 54px 54px 56px 58px 64px;align-items:center;gap:6px;padding:6px 12px}
+.lib-thead,.lib-item{display:grid;grid-template-columns:28px 1fr 90px 48px 50px 54px 54px 58px 60px;align-items:center;gap:5px;padding:6px 12px}
 .lib-thead{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #e3e3e3;color:#666;font-size:12px;z-index:1}
 .lib-th{background:none;border:0;padding:0;text-align:center;color:#666;font:inherit;cursor:pointer}
 .lib-th.on{color:var(--accent);font-weight:700}
@@ -441,6 +441,18 @@ table.kv td { text-align: left; }
 .tw:hover{color:var(--accent)}
 .tw.leaf{visibility:hidden;cursor:default}
 .lib-tree-tools{display:flex;gap:4px;padding:2px 6px 6px}
+
+/* 数据文件夹条 */
+.lib-sources{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:7px 14px;border-bottom:1px solid var(--line);background:var(--panel-2);font-size:12px}
+.lib-sources .spacer{flex:1}
+.lib-src{display:inline-flex;align-items:center;gap:6px;padding:2px 6px 2px 9px;border:1px solid var(--accent-line);border-radius:12px;background:#fff}
+.lib-src.off{border-color:#e6c9a8;background:#fdf6ee}
+.lib-src .muted{font-size:11px}
+.lib-src .btn.small{height:20px;padding:0 6px;font-size:11px}
+.lib-file .fp{flex-basis:100%;color:var(--muted);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-file{flex-wrap:wrap}
+.chip.live{background:#e8f3ec;color:#1f6b42;border:1px solid #bfe0cd}
+.li-num.live{color:#1f6b42;font-weight:700}
 
 </style>
 </head>
@@ -601,6 +613,7 @@ table.kv td { text-align: left; }
   <div id="libPanel" class="lib-panel" hidden></div>
   <input type="file" id="libFileInput" multiple hidden>
   <input type="file" id="libDirInput" webkitdirectory directory multiple hidden>
+  <input type="file" id="libIndexInput" accept="application/json,.json" hidden>
 
   <script>/* vendor/plotly-2.35.2.min.js */
 /**
@@ -3197,7 +3210,10 @@ table.kv td { text-align: left; }
     const m = parsed.meta || {};
     const steps = parsed.steps || [];
     const t0 = steps.length ? (steps[0].timestamp || 0) : 0;
-    const tEnd = steps.length ? (steps[steps.length - 1].timestamp || 0) : 0;
+    let tEnd = steps.length ? (steps[steps.length - 1].timestamp || 0) : 0;
+    // the last step header can be hours before the last data point
+    const ts = parsed.points && parsed.points.time_s;
+    if (t0 && ts && ts.length) tEnd = Math.max(tEnd, Math.round(t0 + ts[ts.length - 1]));
     const ch = channelOf(name);
     const mass = Number(m.massG || 0).toFixed(6);
     return {
@@ -3222,16 +3238,91 @@ table.kv td { text-align: left; }
   }
 
   // ------------------------------------------------------------ index schema
-  const SCHEMA = 1;
+  const SCHEMA = 2;
 
   function emptyIndex() {
     return {
       app: 'LandPlot', schema: SCHEMA, updatedAt: new Date().toISOString(),
+      sources: [],   // read-only data folders: {id, name, kind}
       folders: [{ id: 'root', parent: null, name: '全部电池', order: 0 }],
-      items: [],   // batteries
-      files: [],   // .cex files, each belongs to one item
+      items: [],     // batteries
+      files: [],     // .cex files in place: {src, path} points into a source folder
+      rules: [],     // auto-classification, see defaultRules()
     };
   }
+
+  /** built-in classification rules; `cat` is a path in the virtual tree */
+  function defaultRules() {
+    return [
+      { re: 'EPS-20MTMA',              cat: '其他 / 浮充与他人数据', formula: '1 M LiBOB + EPS + 20% MTMA' },
+      { re: 'SBCN',                    cat: '添加剂 / SBCN',   formula: 'DMGBL + SBCN' },
+      { re: '2\\s*WT\\s*HTCN|@2WTHTCN', cat: '添加剂 / HTCN',   formula: 'DMGBL + 2 wt% HTCN' },
+      { re: 'HTCN',                    cat: '添加剂 / HTCN',   formula: 'DMGBL + 5 wt% HTCN' },
+      { re: '2\\s*WT\\s*ISDN|@2WTISDN', cat: '添加剂 / ISDN',   formula: 'DMGBL + 2 wt% ISDN' },
+      { re: 'ISDN',                    cat: '添加剂 / ISDN',   formula: 'DMGBL + 5 wt% ISDN' },
+      { re: 'TMSAN',                   cat: '添加剂 / TMSAN',  formula: 'DMGBL + 5 wt% TMSAN' },
+      { re: 'TMSP',                    cat: '添加剂 / TMSP',   formula: 'DMGBL + TMSP' },
+      { re: 'TMSB',                    cat: '添加剂 / TMSB',   formula: 'DMGBL + TMSB' },
+      { re: 'DTD',                     cat: '添加剂 / DTD',    formula: 'DMGBL + DTD' },
+      { re: 'R-?DMGBL',                cat: '内酯溶剂 / r-DMGBL', formula: '1 M LiBOB / r-DMGBL' },
+      { re: 'MTMA@DMGBL|MTMA@ DMGBL',  cat: '浓度与共溶 / MTMA:DMGBL = 1:4', formula: '0.8 M LiBOB / MTMA:DMGBL = 1:4' },
+      { re: '0\\.8M\\s*LIBOB',         cat: '浓度与共溶 / 0.8 M LiBOB',      formula: '0.8 M LiBOB / DMGBL' },
+      { re: '\\bGVL\\b',               cat: '内酯溶剂 / GVL',  formula: '1 M LiBOB / GVL' },
+      { re: '\\bMGBL\\b',              cat: '内酯溶剂 / MGBL', formula: '1 M LiBOB / MGBL' },
+      { re: '\\bAAR\\b|\\bAGBL\\b',    cat: '内酯溶剂 / MGBL', formula: '1 M LiBOB / MGBL' },
+      { re: 'LIPF6|EC.?DMC.?EMC',      cat: '对照组 / 商用 LiPF6', formula: '1 M LiPF6 / EC:DMC:EMC' },
+      { re: '\\bSY\\b',                cat: '对照组 / 商用 SY',    formula: '商用电解液 (SY)' },
+      { re: 'LICLO4|LiClO4',           cat: 'MTMA 体系 / LiClO4',  formula: '2 M LiClO4 / MTMA' },
+      { re: 'LIFSI',                   cat: 'MTMA 体系 / LiFSI',   formula: 'LiFSI / MTMA' },
+      { re: '\\bLII\\b|1M LII',        cat: 'MTMA 体系 / LiI',     formula: '1 M LiI / MTMA' },
+      { re: '\\bSL\\b|环丁砜',          cat: 'MTMA 体系 / 环丁砜 SL', formula: 'LiBOB / MTMA + SL' },
+      { re: '\\bSN\\b|丁二腈',          cat: 'MTMA 体系 / 丁二腈 SN', formula: 'LiBOB / MTMA + SN' },
+      { re: '\\bEC\\b',                cat: 'MTMA 体系 / EC',      formula: 'LiBOB / MTMA + EC' },
+      { re: '\\bDME\\b',               cat: '其他 / 醚类',         formula: '1 M LiBOB / DME' },
+      { re: 'DMGBL',                   cat: '内酯溶剂 / DMGBL（主力）', formula: '1 M LiBOB / DMGBL' },
+      { re: 'NI90|LFP|全电池|NCM',      cat: '其他 / 非本课题',     formula: '' },
+    ];
+  }
+
+  /** first matching rule for a path; returns {cat, formula} or null */
+  function classify(rules, relPath) {
+    const t = String(relPath || '').toUpperCase();
+    for (const r of rules || []) {
+      let ok = false;
+      try { ok = new RegExp(r.re, 'i').test(t); } catch (_) { ok = t.includes(String(r.re).toUpperCase()); }
+      if (ok) return r;
+    }
+    return null;
+  }
+
+  /** find (creating as needed) the folder for a "A / B" path */
+  function folderFor(ix, catPath) {
+    let parent = 'root';
+    for (const part of String(catPath || '').split('/').map((s) => s.trim()).filter(Boolean)) {
+      const hit = childFolders(ix, parent).find((f) => f.name === part);
+      parent = hit ? hit.id : addFolder(ix, parent, part).id;
+    }
+    return parent;
+  }
+
+  // ------------------------------------------------------------ data sources
+  function addSource(ix, { name, kind }) {
+    const s = { id: uid('s'), name: name || '数据文件夹', kind: kind || 'folder', addedAt: new Date().toISOString() };
+    ix.sources.push(s);
+    return s;
+  }
+  function removeSource(ix, srcId) {
+    ix.sources = ix.sources.filter((s) => s.id !== srcId);
+    const gone = ix.files.filter((f) => f.src === srcId);
+    ix.files = ix.files.filter((f) => f.src !== srcId);
+    const left = new Set(ix.files.map((f) => f.item));
+    ix.items = ix.items.filter((i) => left.has(i.id));
+    return gone.length;
+  }
+
+  const fileAt = (ix, src, path) => ix.files.find((f) => f.src === src && f.path === path);
+  const fileByRun = (ix, run) => ix.files.find((f) => f.fp && f.fp.run === run);
+  const fileByHash = (ix, hash) => ix.files.find((f) => f.hash === hash);
 
   function normalizeIndex(obj) {
     const ix = Object.assign(emptyIndex(), obj || {});
@@ -3239,11 +3330,20 @@ table.kv td { text-align: left; }
     if (!ix.folders.some((f) => f.id === 'root')) ix.folders.unshift({ id: 'root', parent: null, name: '全部电池', order: 0 });
     ix.items = Array.isArray(ix.items) ? ix.items : [];
     ix.files = Array.isArray(ix.files) ? ix.files : [];
+    ix.sources = Array.isArray(ix.sources) ? ix.sources : [];
+    ix.rules = Array.isArray(ix.rules) && ix.rules.length ? ix.rules : defaultRules();
     for (const it of ix.items) {
       it.tags = Array.isArray(it.tags) ? it.tags : [];
       it.folder = it.folder || 'root';
       it.meta = it.meta || {};
+      if (it.autoFolder === undefined) it.autoFolder = true;
     }
+    // schema 1 kept copies inside the library folder and had no sources
+    if (Number(obj && obj.schema) === 1 && ix.files.length && !ix.files[0].src) {
+      const legacy = addSource(ix, { name: '库文件夹（旧版副本）', kind: 'legacy' });
+      for (const f of ix.files) f.src = legacy.id;
+    }
+    ix.schema = SCHEMA;
     return ix;
   }
 
@@ -3425,9 +3525,25 @@ table.kv td { text-align: left; }
       const idx = s.findIndex((v, i) => i >= bi && v < 0.8 * s[bi]);
       life80 = idx < 0 ? null : idx - bi;
     }
+    // retention so far = last complete discharge ÷ cycle 3 (the first proper 1C cycle).
+    // The partial last cycle is already out of `use`; walk back further if the
+    // file stops mid-charge so the last row has no discharge at all.
+    let lastRow = null;
+    for (let i = use.length - 1; i >= 0; i--) {
+      if (Number.isFinite(use[i].dis_spcap) && use[i].dis_spcap > 0) { lastRow = use[i]; break; }
+    }
+    const lastCap = lastRow ? num(lastRow.dis_spcap) : null;
+    const c3 = use.find((r) => r.cycle === 3);
+    const refCap = c3 && Number.isFinite(c3.dis_spcap) ? num(c3.dis_spcap) : null;
+    const retNow = (refCap && lastCap != null && lastRow.cycle >= 3)
+      ? +((lastCap / refCap) * 100).toFixed(1) : null;
+    const pts = parsed.points && parsed.points.time_s;
+    const runH = pts && pts.length ? +(pts[pts.length - 1] / 3600).toFixed(1) : null;
     return {
       cycles: use.length,
       rawCycles: rows.length,
+      lastCyc: lastRow ? lastRow.cycle : null,
+      lastCap, retNow, refCap, runH,
       partialLast,
       hiCycles: hi.length,
       c1_ch: num(r1.ch_spcap), c1_dis: num(r1.dis_spcap), ice: num(r1.ce),
@@ -3439,10 +3555,42 @@ table.kv td { text-align: left; }
     };
   }
 
+  /**
+   * Is this file a usable measurement? Keeps the junk visible but out of the
+   * way: empty starts, mid-run fragments and timer-cut first charges.
+   */
+  function grade(st) {
+    if (!st) return { ok: false, why: '无有效循环' };
+    if (st.chTimeH != null && st.chTimeH < 2) return { ok: false, why: `首充仅 ${st.chTimeH} h，不是完整首圈` };
+    if (st.chEndV == null || st.chEndV > 4.85) return { ok: false, why: `首充终止 ${st.chEndV} V，异常` };
+    if (st.chEndV < 4.6) return { ok: false, why: `首充只到 ${st.chEndV} V，未达截止电压` };
+    if (st.timeCut) return { ok: false, why: `首充被 ${st.chTimeH} h 计时截断` };
+    if (st.ice != null && st.ice > 102) return { ok: false, why: `ICE ${st.ice}%，不是真正的首圈` };
+    if (st.ice != null && st.ice < 40) return { ok: false, why: `ICE 仅 ${st.ice}%，首圈异常` };
+    if (st.ice == null && st.cycles >= 5) return { ok: false, why: '首圈没有库伦效率' };
+    return { ok: true, why: st.cycles < 5 ? '在测中，圈数还少' : '' };
+  }
+
+  /** still on the cycler? judged from the last timestamp inside the file */
+  function liveness(fp, hours = 36) {
+    const t = fp && fp.tEnd ? fp.tEnd : 0;
+    if (!t) return { live: false, ageH: null };
+    const ageH = (Date.now() / 1000 - t) / 3600;
+    return { live: ageH >= -2 && ageH < hours, ageH };
+  }
+  function ageText(ageH) {
+    if (ageH == null) return '';
+    if (ageH < 1) return '刚刚还在测';
+    if (ageH < 48) return `${Math.round(ageH)} 小时前`;
+    return `${Math.round(ageH / 24)} 天前`;
+  }
+
   LP.library = {
+    grade, liveness, ageText,
     SCHEMA, sha256Hex, hashBuffer,
     channelOf, stemOf, fingerprint, sameCell,
-    emptyIndex, normalizeIndex, uid,
+    emptyIndex, normalizeIndex, uid, defaultRules, classify, folderFor,
+    addSource, removeSource, fileAt, fileByRun, fileByHash,
     childFolders, folderPath, isDescendant, addFolder, removeFolder, moveFolder,
     itemsIn, filesOf, matchIncoming, uniquePath,
     createItem, attachFile, removeItem, mergeItems, summarize,
@@ -3451,11 +3599,14 @@ table.kv td { text-align: left; }
 
 </script>
   <script>/* js/store.js */
-// Storage back-ends for the library.
-//   FsaStore – a real folder on disk (File System Access API, Chrome / Edge,
-//              needs https or localhost; GitHub Pages qualifies)
-//   IdbStore – inside the browser (IndexedDB); works everywhere, survives reloads
-// Both expose the same small interface so the UI does not care which is active.
+// Storage for the library.
+//   Sources  – the folders where the data actually lives. Opened READ-ONLY, so
+//              the browser itself makes it impossible for this app to change,
+//              rename or delete anything inside them.
+//   Index    – a small JSON catalogue (categories, notes, ratings, statistics).
+//              Kept in this browser by default; can be exported / imported, or
+//              written into a separate small folder.
+//   Workspace – the current plotting session, so a reload does not lose it.
 (function (LP) {
   'use strict';
 
@@ -3487,81 +3638,42 @@ table.kv td { text-align: left; }
   const kvGet = (k) => tx('kv', 'readonly', (s) => s.get(k));
   const kvSet = (k, v) => tx('kv', 'readwrite', (s) => s.put(v, k));
   const kvDel = (k) => tx('kv', 'readwrite', (s) => s.delete(k));
-
   const idb = { openDb, tx, kvGet, kvSet, kvDel };
 
   const hasFsa = () => typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
   const INDEX_FILE = 'landplot-library.json';
-  const CEX = /\.(cex|txt)$/i;
+  const CEX = /\.cex$/i;
   const junk = (n) => /^[._]/.test(n) || /^(thumbs\.db|desktop\.ini)$/i.test(n);
 
-  // ------------------------------------------------------------ folder store
-  class FsaStore {
-    constructor(root) { this.root = root; this.kind = 'folder'; }
-    get label() { return this.root ? this.root.name : ''; }
+  // ------------------------------------------------------------- data source
+  /** One read-only folder on disk. Never written to. */
+  class FolderSource {
+    constructor(id, handle) { this.id = id; this.handle = handle; this.kind = 'folder'; }
+    get label() { return this.handle ? this.handle.name : ''; }
 
-    static async restore() {
-      if (!hasFsa()) return null;
-      let h = null;
-      try { h = await kvGet('libRoot'); } catch (_) { return null; }
-      if (!h) return null;
-      let perm = 'denied';
-      try { perm = await h.queryPermission({ mode: 'readwrite' }); } catch (_) { return null; }
-      if (perm === 'granted') return new FsaStore(h);
-      return { needsPermission: true, handle: h, name: h.name };
-    }
-    static async regrant(handle) {
-      const p = await handle.requestPermission({ mode: 'readwrite' });
-      return p === 'granted' ? new FsaStore(handle) : null;
-    }
     static async pick() {
-      const h = await window.showDirectoryPicker({ id: 'landplot-library', mode: 'readwrite' });
-      await kvSet('libRoot', h);
-      return new FsaStore(h);
+      const h = await window.showDirectoryPicker({ id: 'landplot-data', mode: 'read' });
+      return h;
     }
-    static async forget() { await kvDel('libRoot'); }
-
-    async _dir(parts, create) {
-      let d = this.root;
-      for (const p of parts) d = await d.getDirectoryHandle(p, { create: !!create });
-      return d;
+    async permission(request) {
+      try {
+        const opt = { mode: 'read' };
+        let p = await this.handle.queryPermission(opt);
+        if (p !== 'granted' && request) p = await this.handle.requestPermission(opt);
+        return p === 'granted';
+      } catch (_) { return false; }
     }
-    async _file(path, create) {
+    async _file(path) {
       const parts = path.split('/').filter(Boolean);
       const name = parts.pop();
-      const d = await this._dir(parts, create);
-      return d.getFileHandle(name, { create: !!create });
+      let d = this.handle;
+      for (const p of parts) d = await d.getDirectoryHandle(p);
+      return (await d.getFileHandle(name)).getFile();
     }
-    async mkdir(path) { await this._dir(path.split('/').filter(Boolean), true); }
-    async exists(path) { try { await this._file(path, false); return true; } catch (_) { return false; } }
-    async readFile(path) { return (await (await this._file(path, false)).getFile()).arrayBuffer(); }
-    async writeFile(path, buf) {
-      const fh = await this._file(path, true);
-      const w = await fh.createWritable();
-      await w.write(buf); await w.close();
-    }
-    async deleteFile(path) {
-      const parts = path.split('/').filter(Boolean);
-      const name = parts.pop();
-      const d = await this._dir(parts, false);
-      await d.removeEntry(name);
-    }
-    async movePath(from, to) {
-      if (from === to) return;
-      const buf = await this.readFile(from);
-      await this.writeFile(to, buf);
-      try { await this.deleteFile(from); } catch (_) { /* keep the copy if removal fails */ }
-    }
-    async readIndex() {
-      try { return JSON.parse(new TextDecoder().decode(await this.readFile(INDEX_FILE))); }
-      catch (_) { return null; }
-    }
-    async writeIndex(obj) {
-      obj.updatedAt = new Date().toISOString();
-      await this.writeFile(INDEX_FILE, new TextEncoder().encode(JSON.stringify(obj, null, 1)));
-    }
-    /** every .cex under the library folder, as {path, size} */
-    async scan(limit = 5000) {
+    async readFile(path) { return (await this._file(path)).arrayBuffer(); }
+    async stat(path) { const f = await this._file(path); return { size: f.size, mtime: f.lastModified }; }
+    /** every .cex under the folder, as {path, size, mtime} */
+    async scan(limit = 20000, onProgress) {
       const out = [];
       const walk = async (dir, prefix, depth) => {
         if (out.length >= limit || depth > 8) return;
@@ -3569,61 +3681,91 @@ table.kv td { text-align: left; }
           if (junk(name)) continue;
           const p = prefix ? `${prefix}/${name}` : name;
           if (h.kind === 'directory') await walk(h, p, depth + 1);
-          else if (CEX.test(name)) { const f = await h.getFile(); out.push({ path: p, size: f.size, mtime: f.lastModified }); }
+          else if (CEX.test(name)) {
+            const f = await h.getFile();
+            out.push({ path: p, size: f.size, mtime: f.lastModified });
+            if (onProgress && out.length % 25 === 0) onProgress(out.length);
+          }
         }
       };
-      await walk(this.root, '', 0);
+      await walk(this.handle, '', 0);
       return out;
     }
   }
 
-  // ----------------------------------------------------------- browser store
-  class IdbStore {
-    constructor() { this.kind = 'browser'; }
+  /** Files copied into this browser (for drag-and-drop, and for browsers
+   *  without the folder API). Same interface as FolderSource. */
+  class BrowserSource {
+    constructor(id) { this.id = id; this.kind = 'browser'; }
     get label() { return '浏览器内'; }
-    static async open() { return new IdbStore(); }
-
-    async mkdir() { /* paths are virtual */ }
-    async exists(path) { return (await tx('blobs', 'readonly', (s) => s.get(path))) !== undefined; }
+    async permission() { return true; }
+    key(path) { return `${this.id}/${path}`; }
     async readFile(path) {
-      const v = await tx('blobs', 'readonly', (s) => s.get(path));
+      const v = await tx('blobs', 'readonly', (s) => s.get(this.key(path)));
       if (v === undefined) throw new Error('库中找不到文件：' + path);
       return v instanceof Blob ? v.arrayBuffer() : v;
     }
-    async writeFile(path, buf) { await tx('blobs', 'readwrite', (s) => s.put(buf, path)); }
-    async deleteFile(path) { await tx('blobs', 'readwrite', (s) => s.delete(path)); }
-    async movePath(from, to) {
-      if (from === to) return;
-      const buf = await this.readFile(from);
-      await this.writeFile(to, buf);
-      await this.deleteFile(from);
-    }
-    async readIndex() { return (await kvGet('libIndex')) || null; }
-    async writeIndex(obj) { obj.updatedAt = new Date().toISOString(); await kvSet('libIndex', obj); }
+    async writeFile(path, buf) { await tx('blobs', 'readwrite', (s) => s.put(buf, this.key(path))); }
+    async deleteFile(path) { await tx('blobs', 'readwrite', (s) => s.delete(this.key(path))); }
+    async stat(path) { const b = await this.readFile(path); return { size: b.byteLength, mtime: 0 }; }
     async scan() {
-      const keys = await tx('blobs', 'readonly', (s) => s.getAllKeys());
-      return (keys || []).filter((k) => CEX.test(k)).map((k) => ({ path: k, size: 0, mtime: 0 }));
-    }
-    async clear() {
-      await tx('blobs', 'readwrite', (s) => s.clear());
-      await kvDel('libIndex');
+      const keys = (await tx('blobs', 'readonly', (s) => s.getAllKeys())) || [];
+      const pre = this.id + '/';
+      return keys.filter((k) => String(k).startsWith(pre) && CEX.test(k))
+        .map((k) => ({ path: String(k).slice(pre.length), size: 0, mtime: 0 }));
     }
   }
 
+  // Live handles are kept out of the index JSON; they live in IndexedDB.
+  const handles = {
+    async all() { return (await kvGet('srcHandles')) || {}; },
+    async set(id, handle) { const m = await this.all(); m[id] = handle; await kvSet('srcHandles', m); },
+    async del(id) { const m = await this.all(); delete m[id]; await kvSet('srcHandles', m); },
+  };
+
+  /** build live source objects for an index; reports which need re-permission */
+  async function openSources(ix) {
+    const map = await handles.all();
+    const live = {}, needPerm = [];
+    for (const s of ix.sources || []) {
+      if (s.kind === 'browser') { live[s.id] = new BrowserSource(s.id); continue; }
+      const h = map[s.id];
+      if (!h) { needPerm.push({ ...s, lost: true }); continue; }
+      const src = new FolderSource(s.id, h);
+      if (await src.permission(false)) live[s.id] = src;
+      else needPerm.push({ ...s, handle: h });
+    }
+    return { live, needPerm };
+  }
+
+  // ------------------------------------------------------------------ index
+  const indexStore = {
+    async load() { return (await kvGet('libIndex')) || null; },
+    async save(obj) { obj.updatedAt = new Date().toISOString(); await kvSet('libIndex', obj); },
+    async clear() { await kvDel('libIndex'); },
+  };
+
   // --------------------------------------------------------- workspace cache
-  // Keeps the current plotting session so a reload does not lose everything.
   const workspace = {
     async save(payload) { try { await kvSet('workspace', payload); } catch (e) { console.warn('工作区自动保存失败', e); } },
     async load() { try { return await kvGet('workspace'); } catch (_) { return null; } },
     async clear() { try { await kvDel('workspace'); } catch (_) { /* ignore */ } },
   };
 
-  LP.store = { idb, hasFsa, FsaStore, IdbStore, workspace, INDEX_FILE, CEX, junk };
+  LP.store = {
+    idb, hasFsa, FolderSource, BrowserSource, handles, openSources,
+    indexStore, workspace, INDEX_FILE, CEX, junk,
+  };
 })(globalThis.LP = globalThis.LP || {});
 
 </script>
   <script>/* js/libui.js */
-// Library panel: folder tree, battery list, detail pane, import / rescan.
+// Library panel.
+//   The data stays where it is: one or more READ-ONLY source folders, opened
+//   with the browser's folder API in read mode, so this app cannot change,
+//   rename or delete anything inside them. The library itself is only a
+//   catalogue — categories, notes, ratings, statistics — stored in this
+//   browser (exportable as one small JSON file).
 (function (LP) {
   'use strict';
   const { h } = LP.ui;
@@ -3631,205 +3773,235 @@ table.kv td { text-align: left; }
   const S = () => LP.store;
 
   const lib = {
-    store: null,        // FsaStore | IdbStore | null
-    pending: null,      // {needsPermission, handle, name}
-    ix: null,           // index object
-    sel: { folder: 'root', item: null, deep: true, q: '', sort: 'addedAt', desc: true },
+    ix: null,            // the catalogue
+    sources: {},         // id -> live FolderSource / BrowserSource
+    needPerm: [],        // sources waiting for the one-click re-grant
+    sel: { folder: 'root', item: null, deep: true, q: '', sort: 'start', desc: true, onlyGood: true },
     open: false,
     busy: false,
     checked: new Set(),
-    closed: new Set(),   // collapsed folders in the tree
+    closed: new Set(),
+    lastScan: null,      // report of the last 扫描更新
   };
 
   const el = (id) => document.getElementById(id);
-  const toast = (m, bad) => LP.app && LP.app.toastMsg ? LP.app.toastMsg(m, bad) : console.log(m);
+  const toast = (m, bad) => (LP.app && LP.app.toastMsg ? LP.app.toastMsg(m, bad) : console.log(m));
+  const srcOf = (f) => lib.sources[f.src] || null;
+  const srcName = (id) => { const s = (lib.ix.sources || []).find((x) => x.id === id); return s ? s.name : '?'; };
 
   // ------------------------------------------------------------- persistence
   let saveTimer = 0;
   function saveSoon() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => { if (lib.store && lib.ix) lib.store.writeIndex(lib.ix).catch((e) => toast('库索引保存失败：' + e.message, true)); }, 300);
+    saveTimer = setTimeout(() => {
+      if (lib.ix) S().indexStore.save(lib.ix).catch((e) => toast('索引保存失败：' + e.message, true));
+    }, 300);
   }
-
-  async function useStore(store) {
-    lib.store = store; lib.pending = null;
-    lib.ix = L().normalizeIndex(await store.readIndex());
-    if (!(await store.readIndex())) await store.writeIndex(lib.ix);
-    render();
-  }
+  const saveNow = () => (lib.ix ? S().indexStore.save(lib.ix) : Promise.resolve());
 
   async function init() {
-    try {
-      const r = await S().FsaStore.restore();
-      if (r && r.needsPermission) { lib.pending = r; render(); return; }
-      if (r) { await useStore(r); return; }
-    } catch (e) { console.warn(e); }
-    const kept = await S().idb.kvGet('libIndex');
-    if (kept) await useStore(await S().IdbStore.open());
+    const raw = await S().indexStore.load();
+    lib.ix = L().normalizeIndex(raw);
+    const { live, needPerm } = await S().openSources(lib.ix);
+    lib.sources = live; lib.needPerm = needPerm;
     render();
   }
 
-  async function bindFolder() {
-    if (!S().hasFsa()) { toast('这个浏览器不支持绑定本地文件夹，请用 Chrome 或 Edge；现在先用浏览器内的库。', true); return; }
-    try { await useStore(await S().FsaStore.pick()); toast(`已绑定库文件夹：${lib.store.label}`); }
-    catch (e) { if (e && e.name !== 'AbortError') toast('绑定失败：' + e.message, true); }
-  }
-  async function regrant() {
+  // ----------------------------------------------------------- data sources
+  async function addFolderSource() {
+    if (!S().hasFsa()) { toast('这个浏览器不支持绑定本地文件夹，请用 Chrome 或 Edge', true); return; }
+    let handle;
+    try { handle = await S().FolderSource.pick(); }
+    catch (e) { if (e && e.name !== 'AbortError') toast('添加失败：' + e.message, true); return; }
+    if ((lib.ix.sources || []).some((s) => s.name === handle.name && s.kind === 'folder')
+        && !confirm(`已经有一个叫「${handle.name}」的数据文件夹，仍然添加吗？`)) return;
+    let rec = null;
     try {
-      const s = await S().FsaStore.regrant(lib.pending.handle);
-      if (s) { await useStore(s); toast(`已重新连接：${s.label}`); } else toast('没有拿到文件夹权限', true);
-    } catch (e) { toast('重新连接失败：' + e.message, true); }
+      rec = L().addSource(lib.ix, { name: handle.name, kind: 'folder' });
+      await S().handles.set(rec.id, handle);
+      lib.sources[rec.id] = new (S().FolderSource)(rec.id, handle);
+      await saveNow();
+    } catch (e) {
+      console.error(e);
+      if (rec) L().removeSource(lib.ix, rec.id);
+      render();
+      toast('添加文件夹失败：' + (e && e.message ? e.message : e), true);
+      return;
+    }
+    toast(`已添加数据文件夹「${handle.name}」（只读）`);
+    await syncAll([rec.id]);
   }
-  async function useBrowserStore() { await useStore(await S().IdbStore.open()); toast('已启用浏览器内的库（数据保存在本机浏览器里）'); }
 
-  // ------------------------------------------------------------- import flow
-  function targetDir() {
-    const parts = L().folderPath(lib.ix, lib.sel.folder).slice(1); // drop the root label
-    return parts.map((s) => s.replace(/[\\/:*?"<>|]+/g, '_')).join('/');
+  async function regrant(s) {
+    const src = new (S().FolderSource)(s.id, s.handle);
+    if (await src.permission(true)) {
+      lib.sources[s.id] = src;
+      lib.needPerm = lib.needPerm.filter((x) => x.id !== s.id);
+      render();
+      toast(`已重新连接「${s.name}」`);
+    } else toast('没有拿到文件夹权限', true);
   }
 
-  /**
-   * Import a list of File objects. Source files are never modified or moved —
-   * a copy is written into the library folder under the selected category.
-   */
-  async function importFiles(files, opts = {}) {
-    if (!lib.store) { toast('请先选择库的保存位置', true); return; }
+  async function dropSource(s) {
+    if (!confirm(`移除数据文件夹「${s.name}」？\n\n磁盘上的文件不会被删除，只是从索引里拿掉它名下的电池。`)) return;
+    const n = L().removeSource(lib.ix, s.id);
+    delete lib.sources[s.id];
+    await S().handles.del(s.id);
+    lib.needPerm = lib.needPerm.filter((x) => x.id !== s.id);
+    await saveNow(); render();
+    toast(`已移除「${s.name}」及其 ${n} 个文件记录`);
+  }
+
+  /** files dragged in by people who cannot use the folder API */
+  async function importToBrowser(files) {
     const cand = [...files].filter((f) => S().CEX.test(f.name) && !S().junk(f.name.split(/[\\/]/).pop()));
     if (!cand.length) { toast('没有找到 .cex 文件', true); return; }
+    let rec = (lib.ix.sources || []).find((s) => s.kind === 'browser');
+    if (!rec) rec = L().addSource(lib.ix, { name: '浏览器内', kind: 'browser' });
+    const src = lib.sources[rec.id] || (lib.sources[rec.id] = new (S().BrowserSource)(rec.id));
     lib.busy = true; render();
-
-    const taken = new Set(lib.ix.files.map((f) => f.path.toLowerCase()));
-    const dir = targetDir();
-    const res = { added: 0, dup: 0, rerun: 0, cont: 0, fail: [] };
-    const merged = [];
-
     for (let i = 0; i < cand.length; i++) {
-      const file = cand[i];
-      const name = file.name.split(/[\\/]/).pop();
-      setBusy(`正在导入 ${i + 1} / ${cand.length}：${name}`);
-      try {
-        const buf = await file.arrayBuffer();
-        const hash = await L().hashBuffer(buf);
-        let parsed = null;
-        try { parsed = LP.cex.parseCex(buf); } catch (e) { res.fail.push(`${name}：${e.message}`); continue; }
-        const fp = L().fingerprint(parsed, name);
-        const m = L().matchIncoming(lib.ix, hash, fp);
-
-        if (m.kind === 'duplicate') {
-          res.dup++;
-          // keep the earliest name but remember that this source name maps here
-          if (m.file && m.file.originalName !== name && !String(m.file.aka || '').includes(name)) {
-            m.file.aka = [...new Set([...(m.file.aka ? m.file.aka.split(' | ') : []), name])].join(' | ');
-          }
-          continue;
-        }
-
-        const stats = L().summarize(parsed);
-        let itemId;
-        if (m.kind === 'continuation' && m.item && opts.autoMerge !== false) {
-          itemId = m.item.id; res.cont++;
-          merged.push(`${name} → ${m.item.title}`);
-        } else if (m.kind === 'rerun' && m.item) {
-          itemId = m.item.id; res.rerun++;
-          merged.push(`${name} → ${m.item.title}（同一次测试的另一份导出）`);
-        } else {
-          const it = L().createItem(lib.ix, {
-            title: L().stemOf(name) || name,
-            folder: lib.sel.folder,
-            meta: { channel: fp.channel, massMg: stats ? stats.massMg : null, source: file.webkitRelativePath || '' },
-          });
-          itemId = it.id; res.added++;
-        }
-        const path = L().uniquePath(taken, dir, name);
-        taken.add(path.toLowerCase());
-        await lib.store.writeFile(path, buf);
-        L().attachFile(lib.ix, itemId, {
-          path, name: path.split('/').pop(), originalName: name,
-          hash, fp, size: file.size || buf.byteLength, stats,
-        });
-      } catch (e) {
-        res.fail.push(`${name}：${e && e.message ? e.message : '导入失败'}`);
-      }
+      setBusy(`正在存入 ${i + 1} / ${cand.length}`);
+      await src.writeFile(cand[i].webkitRelativePath || cand[i].name, await cand[i].arrayBuffer());
     }
-
     lib.busy = false;
-    await lib.store.writeIndex(lib.ix);
+    await syncAll([rec.id]);
+  }
+
+  // --------------------------------------------------------- scan / update
+  /**
+   * Walk the source folders and bring the catalogue up to date.
+   * Identity is by path first (a folder overwritten from the lab PC keeps its
+   * paths), then by run fingerprint (channel + start time) so a renamed or
+   * moved file is relinked instead of duplicated, then by content hash.
+   */
+  async function syncAll(onlyIds) {
+    const ids = (onlyIds && onlyIds.length ? onlyIds : Object.keys(lib.sources));
+    if (!ids.length) { toast('还没有添加数据文件夹', true); return; }
+    lib.busy = true; render();
+    const rep = { added: 0, grew: [], moved: 0, missing: 0, unchanged: 0, failed: [], scanned: 0 };
+    try {
+      for (const sid of ids) {
+        const src = lib.sources[sid];
+        if (!src) continue;
+        setBusy(`正在列出「${srcName(sid)}」…`);
+        const disk = await src.scan(20000, (n) => setBusy(`正在列出「${srcName(sid)}」… ${n} 个文件`));
+        const seen = new Set();
+        for (let i = 0; i < disk.length; i++) {
+          const d = disk[i];
+          seen.add(d.path);
+          rep.scanned++;
+          if (i % 10 === 0) setBusy(`「${srcName(sid)}」 ${i + 1} / ${disk.length}`);
+          const known = L().fileAt(lib.ix, sid, d.path);
+          if (known && !known.missing && known.size === d.size && known.mtime === d.mtime) { rep.unchanged++; continue; }
+          let buf;
+          try { buf = await src.readFile(d.path); }
+          catch (e) { rep.failed.push(`${d.path}：读取失败`); continue; }
+          const hash = await L().hashBuffer(buf);
+          if (known && known.hash === hash) { known.size = d.size; known.mtime = d.mtime; known.missing = false; rep.unchanged++; continue; }
+          let parsed = null;
+          try { parsed = LP.cex.parseCex(buf); }
+          catch (e) { rep.failed.push(`${d.path}：${e.message}`); continue; }
+          const name = d.path.split('/').pop();
+          const fp = L().fingerprint(parsed, name);
+          const stats = L().summarize(parsed);
+          const before = known && known.stats ? known.stats.cycles : null;
+
+          if (known && known.fp && known.fp.run === fp.run) {            // same run, longer file
+            Object.assign(known, { hash, size: d.size, mtime: d.mtime, fp, stats, missing: false, grade: L().grade(stats) });
+            if (known.grade.ok) { const oit = lib.ix.items.find((i) => i.id === known.item); if (oit) oit.tags = (oit.tags || []).filter((t) => t !== '无效'); }
+            if (before != null && stats && stats.cycles > before) rep.grew.push({ path: d.path, from: before, to: stats.cycles });
+            continue;
+          }
+          const moved = !known && L().fileByRun(lib.ix, fp.run);
+          if (moved) {                                                    // renamed or moved
+            Object.assign(moved, { src: sid, path: d.path, name, hash, size: d.size, mtime: d.mtime, fp, stats, missing: false, grade: L().grade(stats) });
+            rep.moved++; continue;
+          }
+          const dup = !known && L().fileByHash(lib.ix, hash);
+          if (dup) { rep.unchanged++; continue; }                         // byte-identical copy elsewhere
+          if (known) lib.ix.files = lib.ix.files.filter((f) => f !== known); // channel reused by a new cell
+
+          const it = L().createItem(lib.ix, {
+            title: `${L().stemOf(name) || name} · ${fp.channel || '?'} · ${dstr(fp.t0)}`,
+            folder: 'root',
+            meta: { formula: '', cathode: '', channel: fp.channel,
+                    massMg: stats ? stats.massMg : null, window: '', protocol: '' },
+          });
+          it.autoFolder = true;
+          L().attachFile(lib.ix, it.id, { path: d.path, name, originalName: name, hash, fp, size: d.size, stats });
+          const f = lib.ix.files[lib.ix.files.length - 1];
+          f.src = sid; f.mtime = d.mtime; f.grade = L().grade(stats);
+          if (!f.grade.ok) it.tags.push('无效');
+          rep.added++;
+        }
+        for (const f of lib.ix.files) {
+          if (f.src !== sid) continue;
+          const gone = !seen.has(f.path);
+          if (gone && !f.missing) rep.missing++;
+          f.missing = gone;
+        }
+      }
+    } catch (e) {
+      console.error(e); toast('扫描出错：' + (e && e.message), true);
+    }
+    lib.busy = false; setBusy('');
+    lib.lastScan = rep;
+    await saveNow();
     render();
     const parts = [];
-    if (res.added) parts.push(`新建 ${res.added} 只电池`);
-    if (res.cont) parts.push(`${res.cont} 个续测文件已并入已有电池`);
-    if (res.rerun) parts.push(`${res.rerun} 个同次测试的重复导出已并入`);
-    if (res.dup) parts.push(`${res.dup} 个内容完全相同的文件已跳过`);
-    if (res.fail.length) parts.push(`${res.fail.length} 个读取失败`);
-    if (res.fail.length) console.warn('导入失败的文件：\n' + res.fail.join('\n'));
-    if (merged.length) console.info('自动合并：\n' + merged.join('\n'));
-    toast(parts.join('；') || '没有新增文件');
+    if (rep.added) parts.push(`新增 ${rep.added} 只`);
+    if (rep.grew.length) parts.push(`${rep.grew.length} 只长了圈数`);
+    if (rep.moved) parts.push(`${rep.moved} 个改名/移动已重新对上`);
+    if (rep.missing) parts.push(`${rep.missing} 个文件不见了`);
+    if (rep.failed.length) parts.push(`${rep.failed.length} 个读不了`);
+    toast(`扫描完 ${rep.scanned} 个文件：` + (parts.join('，') || '没有变化'));
+    if (rep.failed.length) console.warn('读取失败：\n' + rep.failed.join('\n'));
   }
 
-  /**
-   * Re-read the library folder and re-link by content hash. This is what makes
-   * renaming or re-arranging files in Finder safe, and what picks up files that
-   * were dropped into the folder from outside.
-   */
-  async function rescan() {
-    if (!lib.store) return;
-    lib.busy = true; setBusy('正在扫描库文件夹…'); render();
-    const found = await lib.store.scan();
-    const byPath = new Map(lib.ix.files.map((f) => [f.path, f]));
-    const byHash = new Map(lib.ix.files.map((f) => [f.hash, f]));
-    const seen = new Set();
-    let moved = 0, added = 0, lost = 0;
-    const taken = new Set(lib.ix.files.map((f) => f.path.toLowerCase()));
-
-    for (let i = 0; i < found.length; i++) {
-      const e = found[i];
-      if (e.path === S().INDEX_FILE) continue;
-      setBusy(`扫描 ${i + 1} / ${found.length}`);
-      let buf;
-      try { buf = await lib.store.readFile(e.path); } catch (_) { continue; }
-      const hash = await L().hashBuffer(buf);
-      const known = byHash.get(hash);
-      if (known) {
-        seen.add(known.id);
-        if (known.path !== e.path) { known.path = e.path; known.name = e.path.split('/').pop(); moved++; }
-        continue;
-      }
-      if (byPath.has(e.path)) { // same path, new content → treat as replacement
-        const f = byPath.get(e.path); f.hash = hash; seen.add(f.id); continue;
-      }
-      let parsed = null;
-      try { parsed = LP.cex.parseCex(buf); } catch (_) { continue; }
-      const name = e.path.split('/').pop();
-      const fp = L().fingerprint(parsed, name);
-      const m = L().matchIncoming(lib.ix, hash, fp);
-      let itemId;
-      if ((m.kind === 'continuation' || m.kind === 'rerun') && m.item) itemId = m.item.id;
-      else itemId = L().createItem(lib.ix, { title: L().stemOf(name) || name, folder: folderForPath(e.path), meta: { channel: fp.channel } }).id;
-      taken.add(e.path.toLowerCase());
-      const f = L().attachFile(lib.ix, itemId, {
-        path: e.path, name, originalName: name, hash, fp,
-        size: e.size, stats: L().summarize(parsed),
-      });
-      seen.add(f.id); added++;
-    }
-    for (const f of lib.ix.files) if (!seen.has(f.id)) { f.missing = true; lost++; } else delete f.missing;
-
-    lib.busy = false;
-    await lib.store.writeIndex(lib.ix);
-    render();
-    toast(`扫描完成：${found.length} 个文件；新增 ${added}，路径已更新 ${moved}${lost ? `，${lost} 个在磁盘上找不到（已标记）` : ''}`);
+  const pad2 = (n) => String(n).padStart(2, '0');
+  function dstr(t) {
+    if (!t) return '未知日期';
+    const d = new Date(t * 1000);
+    return `${String(d.getFullYear()).slice(2)}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
   }
 
-  /** map a disk sub-folder to a library category, creating it when needed */
-  function folderForPath(path) {
-    const parts = path.split('/').slice(0, -1);
-    let parent = 'root';
-    for (const name of parts) {
-      let f = lib.ix.folders.find((x) => x.parent === parent && x.name === name);
-      if (!f) f = L().addFolder(lib.ix, parent, name);
-      parent = f.id;
+  /** re-apply the auto-classification rules to everything not filed by hand */
+  function reclassify() {
+    if (!confirm('按文件名里的配方关键词，把还没手动归过类的电池自动分到「内酯溶剂 / 添加剂 / 浓度与共溶 / 对照组…」等分类下。\n\n已经被你手动拖动过的条目不会被碰。要继续吗？')) return;
+    let n = 0;
+    for (const it of lib.ix.items) {
+      if (it.autoFolder === false) continue;
+      const f = L().filesOf(lib.ix, it.id)[0];
+      if (!f) continue;
+      const rule = L().classify(lib.ix.rules, `${srcName(f.src)}/${f.path}`);
+      const folder = L().folderFor(lib.ix, rule ? rule.cat : '未分类');
+      if (it.folder !== folder) { it.folder = folder; n++; }
+      if (rule && rule.formula && !it.meta.formula) it.meta.formula = rule.formula;
     }
-    return parent;
+    saveSoon(); render();
+    toast(n ? `按规则重新归类了 ${n} 只` : '没有需要调整的');
+  }
+
+  // ------------------------------------------------------------- index file
+  function exportIndex() {
+    const blob = new Blob([JSON.stringify(lib.ix, null, 1)], { type: 'application/json' });
+    LP.io.download(blob, S().INDEX_FILE);
+  }
+  async function importIndex(file) {
+    try {
+      const obj = JSON.parse(await file.text());
+      if (!obj || !Array.isArray(obj.items)) throw new Error('不是 LandPlot 索引文件');
+      if (lib.ix && lib.ix.items.length
+          && !confirm(`当前索引里有 ${lib.ix.items.length} 只电池，导入会整个替换掉它。继续吗？`)) return;
+      lib.ix = L().normalizeIndex(obj);
+      await saveNow();
+      const { live, needPerm } = await S().openSources(lib.ix);
+      lib.sources = live; lib.needPerm = needPerm;
+      render();
+      toast(`已导入索引：${lib.ix.items.length} 只电池、${lib.ix.sources.length} 个数据文件夹`
+        + (needPerm.length ? '；请给这些文件夹重新授权' : ''));
+    } catch (e) { toast('导入失败：' + e.message, true); }
   }
 
   // --------------------------------------------------------------- plotting
@@ -3842,11 +4014,15 @@ table.kv td { text-align: left; }
     lib.busy = true; setBusy('正在载入…'); render();
     const bufs = [];
     for (const p of picks) {
-      try { bufs.push({ name: p.item.title + (L().filesOf(lib.ix, p.item.id).length > 1 ? ` · ${p.f.name}` : ''), buf: await lib.store.readFile(p.f.path), massMg: p.item.meta.massMg }); }
-      catch (e) { console.warn(p.f.path, e); }
+      const src = srcOf(p.f);
+      if (!src) continue;
+      try {
+        bufs.push({ name: p.item.title + (L().filesOf(lib.ix, p.item.id).length > 1 ? ` · ${p.f.name}` : ''),
+                    buf: await src.readFile(p.f.path), massMg: p.item.meta.massMg });
+      } catch (e) { console.warn(p.f.path, e); }
     }
     lib.busy = false;
-    if (!bufs.length) { render(); toast('文件读取失败，试试「重新扫描」', true); return; }
+    if (!bufs.length) { render(); toast('文件读取失败，试试「扫描更新」', true); return; }
     LP.app.loadFromLibrary(bufs, { replace });
     close();
   }
@@ -3859,7 +4035,6 @@ table.kv td { text-align: left; }
     b.classList.toggle('spin', !!msg);
   }
 
-  /** earliest test start (unix seconds) over all files of an item */
   function startOf(item) {
     let t = 0;
     for (const f of L().filesOf(lib.ix, item.id)) {
@@ -3893,8 +4068,23 @@ table.kv td { text-align: left; }
     return fs.reduce((a, b) => ((b.stats.cycles || 0) > (a.stats.cycles || 0) ? b : a)).stats;
   }
 
+  const badItem = (it) => L().filesOf(lib.ix, it.id).every((f) => f.grade && f.grade.ok === false);
+
+  /** still running? from the last timestamp inside the file, not the file date:
+   *  copying a whole folder down from the lab PC rewrites every mtime. */
+  function liveOf(item) {
+    let best = { live: false, ageH: null };
+    for (const f of L().filesOf(lib.ix, item.id)) {
+      if (!f.fp) continue;
+      const lv = L().liveness(f.fp);
+      if (best.ageH == null || (lv.ageH != null && lv.ageH < best.ageH)) best = lv;
+    }
+    return best;
+  }
+
   function visibleItems() {
     let list = L().itemsIn(lib.ix, lib.sel.folder, lib.sel.deep);
+    if (lib.sel.onlyGood) list = list.filter((i) => !badItem(i));
     const q = lib.sel.q.trim().toLowerCase();
     if (q) {
       list = list.filter((i) => {
@@ -3908,6 +4098,7 @@ table.kv td { text-align: left; }
       : key === 'rating' ? (x.rating || 0)
       : key === 'cycles' ? ((statOf(x) || {}).cycles || 0)
       : key === 'start' ? startOf(x)
+      : key === 'ret' ? ((statOf(x) || {}).retNow || 0)
       : x.addedAt);
     list.sort((a, b) => {
       const av = sortVal(a), bv = sortVal(b);
@@ -3920,7 +4111,8 @@ table.kv td { text-align: left; }
   function treeNode(fid, depth) {
     const f = lib.ix.folders.find((x) => x.id === fid);
     const kids = L().childFolders(lib.ix, fid);
-    const n = L().itemsIn(lib.ix, fid, true).length;
+    const all = L().itemsIn(lib.ix, fid, true);
+    const n = lib.sel.onlyGood ? all.filter((i) => !badItem(i)).length : all.length;
     const node = h('div', {
       class: 'lib-tree-row' + (lib.sel.folder === fid ? ' on' : ''),
       style: { paddingLeft: (8 + depth * 14) + 'px' },
@@ -3975,7 +4167,9 @@ table.kv td { text-align: left; }
     const f = files.reduce((a, b) => (((b.stats || {}).cycles || 0) > ((a.stats || {}).cycles || 0) ? b : a));
     const key = `${item.id}|${f.id}`;
     if (PV.cache.has(key)) return PV.cache.get(key);
-    const parsed = LP.cex.parseCex(await lib.store.readFile(f.path));
+    const src = srcOf(f);
+    if (!src) return null;
+    const parsed = LP.cex.parseCex(await src.readFile(f.path));
     const massMg = Number(item.meta.massMg) || (f.stats && f.stats.massMg) || parsed.meta.massG * 1000;
     const v = { f, parsed, massMg, stats: L().summarize(parsed, massMg) };
     PV.cache.set(key, v);
@@ -4080,18 +4274,21 @@ table.kv td { text-align: left; }
     if (!item) return h('div', { class: 'lib-empty' }, '选中一只电池查看详情');
     const files = L().filesOf(lib.ix, item.id);
     const st = statOf(item);
-    const field = (label, value, onInput, ph) => h('div', { class: 'lib-field' },
-      h('label', null, label),
-      h('input', { type: 'text', value: value || '', placeholder: ph || '', oninput: (e) => { onInput(e.target.value); saveSoon(); } }));
     const t0 = startOf(item);
     const ch = channelOfItem(item);
     const fl = folderLabel(item);
+    const field = (label, value, onInput, ph) => h('div', { class: 'lib-field' },
+      h('label', null, label),
+      h('input', { type: 'text', value: value || '', placeholder: ph || '', oninput: (e) => { onInput(e.target.value); saveSoon(); } }));
     return h('div', { class: 'lib-detail' },
       previewBox(item),
       h('div', { class: 'lib-ident' },
         h('span', { class: 'chip ch' }, ch || '通道未知'),
         h('span', { class: 'chip ' + (fl ? 'folder' : 'nofolder') }, fl || '未分类'),
-        h('span', { class: 'lib-when' }, t0 ? `开始测试 ${fmtStart(t0, true)}` : '文件里没有时间戳')),
+        (() => { const lv = liveOf(item); return lv.live ? h('span', { class: 'chip live' }, '在测') : null; })(),
+        h('span', { class: 'lib-when' }, t0 ? `开始测试 ${fmtStart(t0, true)}` : '文件里没有时间戳'),
+        (() => { const lv = liveOf(item); return lv.ageH == null ? null
+          : h('span', { class: 'lib-when' }, `最后数据 ${L().ageText(lv.ageH)}`); })()),
       h('input', {
         class: 'lib-title', type: 'text', value: item.title,
         oninput: (e) => { item.title = e.target.value; saveSoon(); const r = document.querySelector(`[data-item="${item.id}"] .li-title`); if (r) r.textContent = e.target.value; },
@@ -4112,20 +4309,23 @@ table.kv td { text-align: left; }
         h('div', null, 'ICE ', h('b', null, st.ice ?? '—'), '%'),
         h('div', null, '峰值 ', h('b', null, st.peak ?? '—'), st.peakAt ? ` @${st.peakAt}` : ''),
         h('div', null, '到 80% ', h('b', null, st.life80 ?? '—'), ' 圈'),
+        st.retNow != null ? h('div', { title: `第 ${st.lastCyc} 圈 ${st.lastCap} ÷ 第 3 圈 ${st.refCap} mAh g⁻¹` },
+          '现保持 ', h('b', null, st.retNow), '%（第 ', st.lastCyc, ' 圈 / 第 3 圈）') : null,
         st.partialLast ? h('div', { class: 'warn' }, '最后 1 圈未放完，已排除') : null,
         st.timeCut ? h('div', { class: 'warn' }, '首充被计时截断') : null) : null,
       h('div', { class: 'lib-files' },
-        h('h5', null, `文件（${files.length}）`),
+        h('h5', null, `文件（${files.length}）· 原位索引，不复制`),
         ...files.map((f) => h('div', { class: 'lib-file' + (f.missing ? ' missing' : '') },
-          h('span', { class: 'fn', title: f.path }, f.name),
+          h('span', { class: 'fn', title: `${srcName(f.src)} / ${f.path}` }, f.name),
+          h('span', { class: 'fm' }, srcName(f.src)),
           f.stats ? h('span', { class: 'fm' }, `${f.stats.cycles} 圈`) : null,
-          f.originalName && f.originalName !== f.name ? h('span', { class: 'fm' }, `原名 ${f.originalName}`) : null,
-          f.missing ? h('span', { class: 'fm warn' }, '磁盘上找不到') : null,
-          h('button', { class: 'btn small ghost', title: '从这只电池移出（文件保留在磁盘上）', onclick: () => { lib.ix.files = lib.ix.files.filter((x) => x.id !== f.id); saveSoon(); render(); } }, '移出')))),
+          f.missing ? h('span', { class: 'fm warn' }, '文件夹里已经没有了') : null,
+          f.grade && !f.grade.ok ? h('span', { class: 'fm warn' }, f.grade.why) : null,
+          h('span', { class: 'fp', title: '文件在数据文件夹里的相对路径' }, f.path)))),
       h('div', { class: 'lib-actions' },
         h('button', { class: 'btn primary', onclick: () => loadToWorkspace([item.id], false) }, '载入绘图'),
         h('button', { class: 'btn', onclick: () => mergeInto(item) }, '合并到…'),
-        h('button', { class: 'btn danger', onclick: () => delItem(item) }, '删除条目')));
+        h('button', { class: 'btn danger', onclick: () => delItem(item) }, '从索引移除')));
   }
 
   function mergeInto(item) {
@@ -4139,11 +4339,9 @@ table.kv td { text-align: left; }
     if (L().mergeItems(lib.ix, hit[0].id, item.id)) { lib.sel.item = hit[0].id; saveSoon(); render(); toast(`已合并到「${hit[0].title}」`); }
   }
 
-  async function delItem(item) {
-    const files = L().filesOf(lib.ix, item.id);
-    const alsoFiles = files.length && confirm(`同时删除库文件夹里的 ${files.length} 个文件？\n\n确定 = 连文件一起删除\n取消 = 只删除条目，文件留在磁盘上\n\n（原始来源文件夹中的文件始终不会被动）`);
+  function delItem(item) {
+    if (!confirm(`把「${item.title}」从索引里移除？\n\n磁盘上的文件不会被删除，下次「扫描更新」还会被重新收录。\n要永久排除，请改用「忽略」。`)) return;
     L().removeItem(lib.ix, item.id);
-    if (alsoFiles) for (const f of files) { try { await lib.store.deleteFile(f.path); } catch (e) { console.warn(e); } }
     lib.sel.item = null; saveSoon(); render();
   }
 
@@ -4154,6 +4352,7 @@ table.kv td { text-align: left; }
     const t0 = startOf(item);
     const fl = folderLabel(item);
     const ch = channelOfItem(item);
+    const lv = liveOf(item);
     return h('div', {
       class: 'lib-item' + (lib.sel.item === item.id ? ' sel' : ''), 'data-item': item.id, draggable: true,
       ondragstart: (e) => {
@@ -4171,6 +4370,7 @@ table.kv td { text-align: left; }
           h('span', { class: 'chip ' + (fl ? 'folder' : 'nofolder'), title: fl ? '所在分类' : '还没有放进任何分类' }, fl || '未分类'),
           item.meta.formula ? h('span', { class: 'li-formula' }, item.meta.formula) : null,
           nf > 1 ? h('span', { class: 'chip' }, `${nf} 个文件`) : null,
+          lv.live ? h('span', { class: 'chip live', title: `文件里最后一条数据：${L().ageText(lv.ageH)}` }, '在测 · ' + L().ageText(lv.ageH)) : null,
           ...(item.tags || []).map((t) => h('span', { class: 'chip tag' }, t)))),
       h('div', { class: 'li-date', title: t0 ? new Date(t0 * 1000).toLocaleString('zh-CN') : '文件里没有时间戳' }, fmtStart(t0)),
       h('div', {
@@ -4180,6 +4380,10 @@ table.kv td { text-align: left; }
       h('div', { class: 'li-num' }, st && st.ice != null ? st.ice : '—'),
       h('div', { class: 'li-num' }, st && st.peak != null ? st.peak : '—'),
       h('div', { class: 'li-num' }, st && st.life80 != null ? st.life80 : '—'),
+      h('div', {
+        class: 'li-num' + (lv.live ? ' live' : ''),
+        title: st && st.retNow != null ? `第 ${st.lastCyc} 圈 ${st.lastCap} ÷ 第 3 圈 ${st.refCap} mAh g⁻¹` : '第 3 圈或末圈没有完整放电，算不出',
+      }, st && st.retNow != null ? st.retNow + '%' : '—'),
       h('div', { class: 'li-stars' }, '★'.repeat(item.rating || 0)));
   }
 
@@ -4196,6 +4400,7 @@ table.kv td { text-align: left; }
       h('button', { class: 'btn small ghost', onclick: () => { lib.checked.clear(); render(); } }, '取消选择'));
   }
 
+  // ---------------------------------------------------------------- panel
   function render() { renderPanel(); renderMini(); }
 
   function renderPanel() {
@@ -4204,62 +4409,82 @@ table.kv td { text-align: left; }
     root.hidden = !lib.open;
     if (!lib.open) return;
     root.innerHTML = '';
+    if (!lib.ix) { root.append(h('div', { class: 'lib-empty' }, '正在打开索引…')); return; }
 
+    const nSrc = Object.keys(lib.sources).length;
     const head = h('div', { class: 'lib-head' },
       h('div', { class: 'lib-where' },
         h('span', { class: 'logo pin', 'aria-hidden': 'true' }),
-        lib.store
-          ? h('span', null, lib.store.kind === 'folder' ? `库文件夹：${lib.store.label}` : '库：浏览器内（本机）')
-          : h('span', { class: 'warn' }, '还没有选择库的保存位置'),
-        lib.store && lib.store.kind === 'folder' ? h('button', { class: 'btn small ghost', onclick: rescan }, '重新扫描') : null,
-        h('button', { class: 'btn small ghost', onclick: bindFolder }, lib.store && lib.store.kind === 'folder' ? '换文件夹' : '绑定本地文件夹'),
-        !lib.store ? h('button', { class: 'btn small ghost', onclick: useBrowserStore }, '先用浏览器内的库') : null),
+        h('b', null, '电池数据库'),
+        h('span', { class: 'muted' }, (() => {
+          const bad = lib.ix.items.filter(badItem).length;
+          const shown = lib.ix.items.length - (lib.sel.onlyGood ? bad : 0);
+          return `${shown} 只${bad ? ` · 另有 ${bad} 只无效数据` : ''} · ${nSrc} 个数据文件夹`;
+        })())),
       h('div', { class: 'spacer' }),
       h('span', { class: 'lib-busy', id: 'libBusy' }),
       h('button', { class: 'btn icon', title: '关闭', onclick: close }, '✕'));
 
-    if (lib.pending) {
-      root.append(head, h('div', { class: 'lib-reconnect' },
-        h('p', null, `上次用的库文件夹是「${lib.pending.name}」。浏览器需要你再点一次才能继续访问它。`),
-        h('button', { class: 'btn primary', onclick: regrant }, '重新连接这个文件夹'),
-        h('button', { class: 'btn ghost', onclick: bindFolder }, '换一个文件夹'),
-        h('button', { class: 'btn ghost', onclick: useBrowserStore }, '改用浏览器内的库')));
-      return;
-    }
-    if (!lib.store) {
-      root.append(head, h('div', { class: 'lib-reconnect' },
-        h('p', null, '库可以存在磁盘上的一个文件夹里（推荐，可备份、可同步、可在访达里直接看），也可以存在浏览器内。'),
-        h('p', { class: 'hint' }, '导入时只会把源文件复制一份到库文件夹，原来的文件不会被改动或移动。'),
-        h('button', { class: 'btn primary', onclick: bindFolder }, '选择库文件夹'),
-        h('button', { class: 'btn ghost', onclick: useBrowserStore }, '存在浏览器内')));
+    const bar = h('div', { class: 'lib-sources' },
+      ...(lib.ix.sources || []).map((s) => {
+        const liveOk = !!lib.sources[s.id];
+        const pend = lib.needPerm.find((x) => x.id === s.id);
+        const n = lib.ix.files.filter((f) => f.src === s.id).length;
+        return h('span', { class: 'lib-src' + (liveOk ? '' : ' off') },
+          h('b', { title: s.kind === 'folder' ? '只读绑定的本地文件夹' : '存在浏览器内' }, s.name),
+          h('span', { class: 'muted' }, `${n} 个文件`),
+          !liveOk && pend && pend.handle ? h('button', { class: 'btn small', onclick: () => regrant(pend) }, '重新授权') : null,
+          !liveOk && pend && pend.lost ? h('span', { class: 'warn' }, '需要重新添加') : null,
+          h('button', { class: 'btn small ghost', title: '从索引中移除这个文件夹', onclick: () => dropSource(s) }, '✕'));
+      }),
+      h('button', { class: 'btn small', onclick: addFolderSource }, '＋ 添加数据文件夹'),
+      h('div', { class: 'spacer' }),
+      h('button', { class: 'btn primary', disabled: !nSrc, title: '重新读一遍数据文件夹，更新圈数、收录新电池', onclick: () => syncAll() }, '扫描更新'),
+      h('button', { class: 'btn small ghost', onclick: reclassify, title: '可选：按文件名里的配方关键词自动分类；手动移动过的不动' }, '按文件名归类…'),
+      h('button', { class: 'btn small ghost', onclick: exportIndex, title: '把索引导出成一个 json 文件' }, '导出索引'),
+      h('button', { class: 'btn small ghost', onclick: () => el('libIndexInput').click(), title: '从 json 文件恢复索引' }, '导入索引'));
+
+    if (!lib.ix.sources.length) {
+      root.append(head, bar, h('div', { class: 'lib-reconnect' },
+        h('p', null, '这个库只做索引，不复制文件：你的 .cex 留在原来的文件夹里，库只记录分类、备注、评分和统计。'),
+        h('p', { class: 'hint' }, '文件夹是以「只读」方式打开的，浏览器层面就不允许本页面改动、重命名或删除里面的任何文件。'),
+        h('p', { class: 'hint' }, '以后从实验室电脑整个覆盖这两个文件夹也没关系：按路径和「通道＋开始时间」重新对上，圈数变长的会就地更新，不会变成重复条目。'),
+        h('button', { class: 'btn primary', onclick: addFolderSource }, '添加数据文件夹'),
+        h('button', { class: 'btn ghost', onclick: () => el('libFileInput').click() }, '或：把文件存进浏览器')));
       return;
     }
 
     const tools = h('div', { class: 'lib-tools' },
-      h('button', { class: 'btn primary', onclick: () => el('libFileInput').click() }, '导入 .cex'),
-      h('button', { class: 'btn', onclick: () => el('libDirInput').click() }, '导入文件夹'),
-      h('span', { class: 'lib-into' }, '导入到：', L().folderPath(lib.ix, lib.sel.folder).join(' / ')),
+      h('span', { class: 'lib-into' }, lib.lastScan
+        ? `上次扫描：${lib.lastScan.scanned} 个文件，新增 ${lib.lastScan.added}，更新 ${lib.lastScan.grew.length}`
+        : '点「扫描更新」把文件夹里的变化读进来'),
       h('div', { class: 'spacer' }),
-      h('input', { class: 'lib-search', type: 'search', placeholder: '搜索名称 / 配方 / 标签 / 文件名', value: lib.sel.q, oninput: (e) => { lib.sel.q = e.target.value; renderList(); } }),
-      h('label', { class: 'lib-deep' }, h('input', { type: 'checkbox', checked: lib.sel.deep, onchange: (e) => { lib.sel.deep = e.target.checked; renderList(); } }), '含子分类'));
+      h('input', { class: 'lib-search', type: 'search', placeholder: '搜索名称 / 配方 / 标签 / 文件名',
+        value: lib.sel.q, oninput: (e) => { lib.sel.q = e.target.value; renderList(); } }),
+      h('label', { class: 'lib-deep' }, h('input', { type: 'checkbox', checked: lib.sel.deep,
+        onchange: (e) => { lib.sel.deep = e.target.checked; renderList(); } }), '含子分类'),
+      h('label', { class: 'lib-deep', title: '空跑、片段、被计时截断的文件仍然在索引里，只是不显示' },
+        h('input', { type: 'checkbox', checked: lib.sel.onlyGood,
+          onchange: (e) => { lib.sel.onlyGood = e.target.checked; render(); } }),
+        `只看有效数据（${lib.ix.items.filter(badItem).length} 只被折起）`));
 
     const tree = h('div', { class: 'lib-tree' },
       h('div', { class: 'lib-tree-tools' },
-        h('button', { class: 'btn small ghost', title: '折叠全部分类', onclick: () => { branchIds().forEach((id) => lib.closed.add(id)); render(); } }, '全部折叠'),
-        h('button', { class: 'btn small ghost', title: '展开全部分类', onclick: () => { lib.closed.clear(); render(); } }, '全部展开')),
+        h('button', { class: 'btn small ghost', onclick: () => { branchIds().forEach((id) => lib.closed.add(id)); render(); } }, '全部折叠'),
+        h('button', { class: 'btn small ghost', onclick: () => { lib.closed.clear(); render(); } }, '全部展开')),
       ...treeNode('root', 0),
       h('div', { class: 'lib-tree-btns' },
         h('button', { class: 'btn small ghost', onclick: () => { const n = prompt('新分类名称：'); if (n) { const f = L().addFolder(lib.ix, lib.sel.folder, n); lib.sel.folder = f.id; saveSoon(); render(); } } }, '＋ 子分类'),
         h('button', { class: 'btn small ghost', disabled: lib.sel.folder === 'root', onclick: () => { const f = lib.ix.folders.find((x) => x.id === lib.sel.folder); const n = prompt('重命名分类：', f.name); if (n) { f.name = n; saveSoon(); render(); } } }, '重命名'),
-        h('button', { class: 'btn small ghost', disabled: lib.sel.folder === 'root', onclick: () => { if (confirm('删除这个分类？里面的电池会移到上一层，文件不会被删除。')) { const up = (lib.ix.folders.find((x) => x.id === lib.sel.folder) || {}).parent || 'root'; L().removeFolder(lib.ix, lib.sel.folder); lib.sel.folder = up; saveSoon(); render(); } } }, '删除')));
+        h('button', { class: 'btn small ghost', disabled: lib.sel.folder === 'root', onclick: () => { if (confirm('删除这个分类？里面的电池会移到上一层，文件不受影响。')) { const up = (lib.ix.folders.find((x) => x.id === lib.sel.folder) || {}).parent || 'root'; L().removeFolder(lib.ix, lib.sel.folder); lib.sel.folder = up; saveSoon(); render(); } } }, '删除')));
 
     const listWrap = h('div', { class: 'lib-list', id: 'libList' });
-    const bar = h('div', { class: 'lib-selbar', id: 'libSelBar', hidden: true });
+    const selbar = h('div', { class: 'lib-selbar', id: 'libSelBar', hidden: true });
     const body = h('div', { class: 'lib-body' }, tree,
-      h('div', { class: 'lib-mid' }, bar, listWrap),
+      h('div', { class: 'lib-mid' }, selbar, listWrap),
       h('div', { class: 'lib-side', id: 'libSide' }));
 
-    root.append(head, tools, body);
+    root.append(head, bar, tools, body);
     renderList();
     renderBar();
   }
@@ -4278,8 +4503,9 @@ table.kv td { text-align: left; }
       sortBtn('start', '开始测试'),
       sortBtn('cycles', '圈数'), h('span', { class: 'lib-th' }, 'ICE'),
       h('span', { class: 'lib-th' }, '峰值'), h('span', { class: 'lib-th' }, '到80%'),
+      sortBtn('ret', '现保持'),
       sortBtn('rating', '评分')));
-    if (!list.length) wrap.append(h('div', { class: 'lib-empty' }, lib.ix.items.length ? '这个分类下没有电池' : '库是空的，点左上角「导入 .cex」开始'));
+    if (!list.length) wrap.append(h('div', { class: 'lib-empty' }, lib.ix.items.length ? '这个分类下没有电池' : '还是空的，点上面的「扫描更新」'));
     for (const it of list) wrap.append(itemRow(it));
     const side = el('libSide');
     if (side) {
@@ -4289,9 +4515,6 @@ table.kv td { text-align: left; }
     }
   }
 
-  // ------------------------------------------------- compact panel (sidebar)
-  // A folded-away version of the library inside the left sidebar, so a battery
-  // can go straight to the plot without opening the full window.
   const mini = { q: '', folder: 'root', checked: new Set() };
 
   function miniItems() {
@@ -4309,16 +4532,17 @@ table.kv td { text-align: left; }
     if (box.hidden) return;                       // collapsed: nothing to draw
     if (!LP.library || !LP.store) return;
 
-    if (lib.pending) {
-      box.append(h('div', { class: 'lib-mini-hint' }, `上次绑定的文件夹：${lib.pending.name}`),
-        h('button', { class: 'btn small', onclick: () => regrant().then(render) }, '重新连接'));
+    if (!lib.ix) return;
+    if (lib.needPerm.length && lib.needPerm.some((x) => x.handle)) {
+      const p = lib.needPerm.find((x) => x.handle);
+      box.append(h('div', { class: 'lib-mini-hint' }, `数据文件夹「${p.name}」需要重新授权`),
+        h('button', { class: 'btn small', onclick: () => regrant(p) }, '重新授权'));
       return;
     }
-    if (!lib.store) {
-      box.append(h('div', { class: 'lib-mini-hint' }, '还没有设置电池库。'),
+    if (!lib.ix.sources.length) {
+      box.append(h('div', { class: 'lib-mini-hint' }, '还没有添加数据文件夹。'),
         h('div', { class: 'lib-mini-foot' },
-          h('button', { class: 'btn small', onclick: () => bindFolder().then(render) }, '绑定文件夹'),
-          h('button', { class: 'btn small ghost', onclick: () => useBrowserStore().then(render) }, '存在浏览器内')));
+          h('button', { class: 'btn small', onclick: addFolderSource }, '添加数据文件夹')));
       return;
     }
 
@@ -4375,12 +4599,12 @@ table.kv td { text-align: left; }
     renderMini();
   }
 
-  function open() { lib.open = true; render(); if (!lib.store && !lib.pending) init(); }
+  function open() { lib.open = true; render(); if (!lib.ix) init(); }
   function close() { lib.open = false; const r = el('libPanel'); if (r) r.hidden = true; renderMini(); }
 
   LP.libui = {
-    lib, init, open, close, render, renderMini, importFiles, rescan, loadToWorkspace,
-    bindFolder, useBrowserStore, mini,
+    lib, init, open, close, render, renderMini, loadToWorkspace,
+    syncAll, addFolderSource, importToBrowser, reclassify, exportIndex, importIndex, mini,
   };
 })(globalThis.LP = globalThis.LP || {});
 
@@ -5146,14 +5370,15 @@ table.kv td { text-align: left; }
       $('libMiniBody').hidden = !on;
       $('libMiniCaret').textContent = on ? '\u25be' : '\u25b8';
       try { localStorage.setItem('lp.libMini', on ? '1' : '0'); } catch (_) { /* ignore */ }
-      if (on && LP.libui) { LP.libui.renderMini(); if (!LP.libui.lib.store && !LP.libui.lib.pending) LP.libui.init().catch(() => {}); }
+      if (on && LP.libui) { LP.libui.renderMini(); if (!LP.libui.lib.ix) LP.libui.init().catch(() => {}); }
     };
     $('libMiniHead').addEventListener('click', () => setMini($('libMiniBody').hidden));
     let miniOpen = false;
     try { miniOpen = localStorage.getItem('lp.libMini') === '1'; } catch (_) { /* ignore */ }
     setMini(miniOpen);
-    $('libFileInput').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; if (f.length) LP.libui.importFiles(f); });
-    $('libDirInput').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; if (f.length) LP.libui.importFiles(f); });
+    $('libFileInput').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; if (f.length) LP.libui.importToBrowser(f); });
+    $('libDirInput').addEventListener('change', (e) => { const f = [...e.target.files]; e.target.value = ''; if (f.length) LP.libui.importToBrowser(f); });
+    $('libIndexInput').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) LP.libui.importIndex(f); });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && LP.libui && LP.libui.lib.open) LP.libui.close();
     });
